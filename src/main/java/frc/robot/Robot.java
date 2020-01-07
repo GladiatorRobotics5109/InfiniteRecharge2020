@@ -7,11 +7,19 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DigitalSource;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PWMVictorSPX;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.ControlType;
+import com.revrobotics.CANEncoder;
+import com.revrobotics.CANPIDController;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import frc.robot.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -21,10 +29,13 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
  * directory.
  */
 public class Robot extends TimedRobot {
-  private final DifferentialDrive m_robotDrive
-      = new DifferentialDrive(new PWMVictorSPX(0), new PWMVictorSPX(1));
+  private final DifferentialDrive m_robotDrive = new DifferentialDrive(new PWMVictorSPX(0), new PWMVictorSPX(1));
   private final Joystick m_stick = new Joystick(0);
   private final Timer m_timer = new Timer();
+  public DigitalSource gay = new DigitalInput(0);
+  LidarLitePWM penis = new LidarLitePWM(gay);
+  public Joystick operator = new Joystick(2);
+  private CANSparkMax leftElevator = new CANSparkMax(3, MotorType.kBrushless);
 
   /**
    * This function is run when the robot is first started up and should be
@@ -61,6 +72,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopInit() {
+    
   }
 
   /**
@@ -68,7 +80,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
+    System.out.println(penis.getDistance());
+    System.out.println("gay");
     m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
+   leftElevator.set(operator.getY());
   }
 
   /**
