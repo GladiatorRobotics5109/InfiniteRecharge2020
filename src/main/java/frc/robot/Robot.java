@@ -82,7 +82,9 @@ public class Robot extends TimedRobot {
  
   @Override
   public void autonomousPeriodic() {
- 
+
+
+
   }
 
 
@@ -94,7 +96,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-
+    m_Right1.set(j_Operator.getY());
+    m_RightElevator.set(-j_Operator.getY());
+    SmartDashboard.putNumber("Spark3", e_Right1.getVelocity());
+    SmartDashboard.putNumber("Spark6", e_RightElevator.getVelocity());
   }
 
 
