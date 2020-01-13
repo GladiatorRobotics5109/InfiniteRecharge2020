@@ -18,14 +18,16 @@ package frc.robot;
     import edu.wpi.first.networktables.*;
     import edu.wpi.first.wpilibj.smartdashboard.*;
     import edu.wpi.first.wpilibj.drive.*;
+    import edu.wpi.first.wpilibj.SpeedControllerGroup.*;
 
   //spark max/neos imports
     import com.revrobotics.*;
     import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-//navx imports
+
+  //navx imports
     import com.kauailabs.navx.frc.*;
 
-//endregion
+  //endregion
 
 public class Robot extends TimedRobot {
 
@@ -39,10 +41,11 @@ public class Robot extends TimedRobot {
     //neos
       public CANSparkMax m_Left1 = new CANSparkMax(1, MotorType.kBrushless);
       public CANSparkMax m_Left2 = new CANSparkMax(2, MotorType.kBrushless);
-      public CANSparkMax m_Right1 = new CANSparkMax(3, MotorType.kBrushless);
-      public CANSparkMax m_Right2 = new CANSparkMax(4, MotorType.kBrushless);
-      public CANSparkMax m_LeftElevator = new CANSparkMax(5, MotorType.kBrushless);
+      public CANSparkMax m_Right1 = new CANSparkMax(4, MotorType.kBrushless);
+      public CANSparkMax m_Right2 = new CANSparkMax(5, MotorType.kBrushless);
+      public CANSparkMax m_LeftElevator = new CANSparkMax(3, MotorType.kBrushless);
       public CANSparkMax m_RightElevator = new CANSparkMax(6, MotorType.kBrushless);
+      public boolean inversion = true;
 
     //neo encoders
       public CANEncoder e_Left1 = m_Left1.getEncoder();
@@ -61,9 +64,9 @@ public class Robot extends TimedRobot {
       public CANPIDController pc_RightElevator = m_Left1.getPIDController();
 
     //neo controllers
-
-
-
+      public SpeedControllerGroup m_Left = new SpeedControllerGroup(m_Left1, m_Left2);
+      public SpeedControllerGroup m_Right = new SpeedControllerGroup(m_Right1, m_Right2);
+      public DifferentialDrive m_DriveTrain = new DifferentialDrive(m_Left, m_Right);
 
 
 
@@ -72,7 +75,10 @@ public class Robot extends TimedRobot {
  
   @Override
   public void robotInit() {
+    m_Left.setInverted(inversion);
+    m_Right.setInverted(inversion);
   }
+
 
   @Override
   public void autonomousInit() {
@@ -94,7 +100,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-
+    m_DriveTrain.tankDrive(j_Left.getY(), j_Right.getY());
   }
 
 
