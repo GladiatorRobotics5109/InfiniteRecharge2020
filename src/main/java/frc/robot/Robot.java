@@ -2,7 +2,7 @@
 package frc.robot;
 
 //navx imports
-import com.kauailabs.navx.frc.AHRS;
+//import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -39,7 +39,7 @@ public class Robot extends TimedRobot {
   double yaw;
 
   // navX
-  AHRS navX;
+  //AHRS navX;
 
   // joysticks
   public Joystick leftJoystick = new Joystick(0);
@@ -142,7 +142,7 @@ public class Robot extends TimedRobot {
 
     maxVel = 7000;
 
-    maxAcc = 1000;
+    maxAcc = 1500;
 
     allowedErrLeft = 0;
     allowedErrRight = 0;
@@ -298,7 +298,7 @@ public class Robot extends TimedRobot {
 
   public void testPeriodic() {
   
-    chameleonvision = inst.getTable("chamleon-vision");
+    chameleonvision = inst.getTable("chameleon-vision");
     visiontable = chameleonvision.getSubTable("VisionTable");
     yaw = visiontable.getEntry("yaw").getDouble(0);
 
@@ -308,16 +308,16 @@ public class Robot extends TimedRobot {
         leftMotor2.follow(leftMotor1);
         rightMotor2.follow(rightMotor1);
 
-        leftPidController1.setReference(yaw * -25, ControlType.kVelocity);
-        rightPidController1.setReference(yaw * -25, ControlType.kVelocity);
+        leftPidController1.setReference(yaw * -22, ControlType.kVelocity);
+        rightPidController1.setReference(yaw * -22, ControlType.kVelocity);
       }
       
       else if (yaw < 0) {
         leftMotor2.follow(leftMotor1);
         rightMotor2.follow(rightMotor1);
 
-        leftPidController1.setReference(yaw * -25, ControlType.kVelocity);
-        rightPidController1.setReference(yaw * -25, ControlType.kVelocity);
+        leftPidController1.setReference(yaw * -22, ControlType.kVelocity);
+        rightPidController1.setReference(yaw * -22, ControlType.kVelocity);
       }
 
       else{
@@ -335,5 +335,6 @@ public class Robot extends TimedRobot {
       rightPidController1.setReference(0, ControlType.kVelocity);
     }
 
+System.out.println(yaw);
   }
 }
