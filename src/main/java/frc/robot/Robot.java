@@ -2,7 +2,7 @@
 package frc.robot;
 
 //navx imports
-import com.kauailabs.navx.frc.AHRS;
+//import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -39,7 +39,7 @@ public class Robot extends TimedRobot {
   double yaw;
 
   // navX
-  AHRS navX;
+  //AHRS navX;
 
   // joysticks
   public Joystick leftJoystick = new Joystick(0);
