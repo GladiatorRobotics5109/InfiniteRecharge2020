@@ -304,20 +304,21 @@ public class Robot extends TimedRobot {
 
     if (leftJoystick.getRawButton(1)) {
 
+
       if (yaw > 0) {
         leftMotor2.follow(leftMotor1);
         rightMotor2.follow(rightMotor1);
 
-        leftPidController1.setReference(yaw * -22, ControlType.kVelocity);
-        rightPidController1.setReference(yaw * -22, ControlType.kVelocity);
+        leftPidController1.setReference(yaw * -40, ControlType.kVelocity);
+        rightPidController1.setReference(yaw * -40, ControlType.kVelocity);
       }
       
       else if (yaw < 0) {
         leftMotor2.follow(leftMotor1);
         rightMotor2.follow(rightMotor1);
 
-        leftPidController1.setReference(yaw * -22, ControlType.kVelocity);
-        rightPidController1.setReference(yaw * -22, ControlType.kVelocity);
+        leftPidController1.setReference(yaw * -40, ControlType.kVelocity);
+        rightPidController1.setReference(yaw * -40, ControlType.kVelocity);
       }
 
       else{
