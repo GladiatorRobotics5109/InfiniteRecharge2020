@@ -68,6 +68,15 @@ public class Robot extends TimedRobot {
       public SpeedControllerGroup m_Right = new SpeedControllerGroup(m_Right1, m_Right2);
       public DifferentialDrive m_DriveTrain = new DifferentialDrive(m_Left, m_Right);
 
+    //navx variables
+      public AHRS navX = new AHRS(SPI.Port.kMXP);
+      public float imu_Yaw;
+
+    //vision variables
+      NetworkTableInstance ntwrkInst = NetworkTableInstance.getDefault();
+      NetworkTable visionTable;
+      NetworkTable chameleonVision;
+
 
 
 
@@ -106,5 +115,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
+    
   }
 }
