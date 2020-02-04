@@ -68,24 +68,24 @@ public class Robot extends TimedRobot {
       public CANEncoder e_ControlPanel = m_ControlPanel.getEncoder();
       public CANEncoder e_Climb = m_Climb.getEncoder();
       public CANEncoder e_LeftWinch = m_LeftWinch.getEncoder();
-      public CANEncoder e_RightWinch = m_RightWinch.getPIDController();
+      public CANEncoder e_RightWinch = m_RightWinch.getEncoder();
 
 
 
     //neo pidcontrollers
-      public CANEncoder e_Left1 = m_Left1.getPIDController();
-      public CANEncoder e_Left2 = m_Left2.getPIDController();
-      public CANEncoder e_Right1 = m_Right1.getPIDController();
-      public CANEncoder e_Right2 = m_Right2.getPIDController();
-      public CANEncoder e_Intake = m_Intake.getPIDController();
-      public CANEncoder e_Feeder = m_Feeder.getPIDController();
-      public CANEncoder e_Tilting = m_Tilting.getPIDController();
-      public CANEncoder e_TopShooter = m_TopShooter.getPIDController();
-      public CANEncoder e_BotShooter = m_BotShooter.getPIDController();
-      public CANEncoder e_ControlPanel = m_ControlPanel.getPIDController();
-      public CANEncoder e_Climb = m_Climb.getPIDController();
-      public CANEncoder e_LeftWinch = m_LeftWinch.getPIDController();
-      public CANEncoder e_RightWinch = m_RightWinch.getPIDController();
+      public CANPIDController pc_Left1 = m_Left1.getPIDController();
+      public CANPIDController pc_Left2 = m_Left2.getPIDController();
+      public CANPIDController pc_Right1 = m_Right1.getPIDController();
+      public CANPIDController pc_Right2 = m_Right2.getPIDController();
+      public CANPIDController pc_Intake = m_Intake.getPIDController();
+      public CANPIDController pc_Feeder = m_Feeder.getPIDController();
+      public CANPIDController pc_Tilting = m_Tilting.getPIDController();
+      public CANPIDController pc_TopShooter = m_TopShooter.getPIDController();
+      public CANPIDController pc_BotShooter = m_BotShooter.getPIDController();
+      public CANPIDController pc_ControlPanel = m_ControlPanel.getPIDController();
+      public CANPIDController pc_Climb = m_Climb.getPIDController();
+      public CANPIDController pc_LeftWinch = m_LeftWinch.getPIDController();
+      public CANPIDController pc_RightWinch = m_RightWinch.getPIDController();
 
 
 
@@ -143,4 +143,12 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     
   }
+
+  //region_Methods
+
+
+
+
+  //endregion
+
 }
