@@ -2,7 +2,7 @@
 package frc.robot;
 
 //navx imports
-//import com.kauailabs.navx.frc.AHRS;
+import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -38,191 +38,141 @@ public class Robot extends TimedRobot {
   edu.wpi.first.networktables.NetworkTable chameleonvision;
   double yaw;
 
-  // navX
-  //AHRS navX;
+   
+ //region_Variables
+ 
+   //joysticks
+   public Joystick j_Left = new Joystick(0);
+   public Joystick j_Right = new Joystick(1);
+   public Joystick j_Operator = new Joystick(2);
 
-  // joysticks
-  public Joystick leftJoystick = new Joystick(0);
-  public Joystick rightJoystick = new Joystick(1);
-  public Joystick operator = new Joystick(2);
+ //neos
+   public CANSparkMax m_Left1 = new CANSparkMax(12, MotorType.kBrushless);
+   public CANSparkMax m_Left2 = new CANSparkMax(13, MotorType.kBrushless);
+   public CANSparkMax m_Right1 = new CANSparkMax(1, MotorType.kBrushless);
+   public CANSparkMax m_Right2 = new CANSparkMax(2, MotorType.kBrushless);
+   public CANSparkMax m_Intake = new CANSparkMax(6, MotorType.kBrushless); //negative power for in, positive power for out
+   public CANSparkMax m_Feeder = new CANSparkMax(7, MotorType.kBrushless); //positive power for in, negative power for out
+   public CANSparkMax m_Tilting = new CANSparkMax(5, MotorType.kBrushless); //positive power for up, negative power for down
+   public CANSparkMax m_TopShooter = new CANSparkMax(11, MotorType.kBrushless); //positive power for out
+   public CANSparkMax m_BottomShooter = new CANSparkMax(10, MotorType.kBrushless); //negative power for out
+   public CANSparkMax m_ControlPanel = new CANSparkMax(8, MotorType.kBrushless); //when facing robot's control panel wheel from front of bot, positive power spins ccw and negative power spins cw
+   public CANSparkMax m_Climb = new CANSparkMax(3, MotorType.kBrushless);
+   public CANSparkMax m_LeftWinch = new CANSparkMax(9, MotorType.kBrushless);
+   public CANSparkMax m_RightWinch = new CANSparkMax(4, MotorType.kBrushless);
 
-  // pid Values
-  public double kP;
-  public double kI;
-  public double kD;
-  public double kIz;
-  public double L_kFF;
-  public double R_kFF;
-  public double kMaxOutput;
-  public double kMinOutput;
-  public double maxRPM;
-  public double setpoint;
-  public double desiredSetPoint;
-  public double centerX;
-  public double distance;
-  public double tuningConstantL;
-  public double tuningConstantR;
-  public double pixoff;
-  public double direction;
-  public double setPoint;
-  public double maxVel, minVel, maxAcc, allowedErrLeft, allowedErrRight;
+ //neo encoders
+   public CANEncoder e_Left1 = m_Left1.getEncoder(); //positive forward for Left
+   public CANEncoder e_Left2 = m_Left2.getEncoder();
+   public CANEncoder e_Right1 = m_Right1.getEncoder(); //negative forward for right
+   public CANEncoder e_Right2 = m_Right2.getEncoder();
+   public CANEncoder e_Intake = m_Intake.getEncoder(); //negative when intaking
+   public CANEncoder e_Feeder = m_Feeder.getEncoder(); //positive when intaking
+   public CANEncoder e_Tilting = m_Tilting.getEncoder(); //negative when leaning back
+   public CANEncoder e_TopShooter = m_TopShooter.getEncoder(); //positive when shooting ball out
+   public CANEncoder e_BottomShooter = m_BottomShooter.getEncoder(); //negative when shooting ball out
+   public CANEncoder e_ControlPanel = m_ControlPanel.getEncoder(); //positive when ccw, negative when cw
+   public CANEncoder e_Climb = m_Climb.getEncoder();
+   public CANEncoder e_LeftWinch = m_LeftWinch.getEncoder();
+   public CANEncoder e_RightWinch = m_RightWinch.getEncoder();
 
-  // vision
-  
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
-  private SendableChooser<String> m_chooser = new SendableChooser<>();
+ //neo pidcontrollers
+   public CANPIDController pc_Left1 = m_Left1.getPIDController();
+   public CANPIDController pc_Left2 = m_Left2.getPIDController();
+   public CANPIDController pc_Right1 = m_Right1.getPIDController();
+   public CANPIDController pc_Right2 = m_Right2.getPIDController();
+   public CANPIDController pc_Intake = m_Intake.getPIDController();
+   public CANPIDController pc_Feeder = m_Feeder.getPIDController();
+   public CANPIDController pc_Tilting = m_Tilting.getPIDController();
+   public CANPIDController pc_TopShooter = m_TopShooter.getPIDController();
+   public CANPIDController pc_BottomShooter = m_BottomShooter.getPIDController();
+   public CANPIDController pc_ControlPanel = m_ControlPanel.getPIDController();
+   public CANPIDController pc_Climb = m_Climb.getPIDController();
+   public CANPIDController pc_LeftWinch = m_LeftWinch.getPIDController();
+   public CANPIDController pc_RightWinch = m_RightWinch.getPIDController();
 
-  // gear switching booleans
-  public boolean lowGear = true;
-  public boolean changeGears = true;
+ //neo controllers
+   public SpeedControllerGroup m_Left = new SpeedControllerGroup(m_Left1, m_Left2);
+   public SpeedControllerGroup m_Right = new SpeedControllerGroup(m_Right1, m_Right2);
+   public DifferentialDrive m_DriveTrain = new DifferentialDrive(m_Left, m_Right); //negative power makes bot move forward, positive power makes bot move backwards
 
-  // arcadeDrive switching
-  public boolean squaredInput = false;
-  public boolean changeDrive = true;
+ //solenoids
+   public Solenoid s_LeftIntake = new Solenoid(4);
+   public Solenoid s_RightIntake = new Solenoid(5);
+   public Solenoid s_ControlPanel = new Solenoid(6);
+   public Solenoid s_Additional = new Solenoid(7);
 
-  // Neos plus respective encoders and pidcontrollers
-  private CANSparkMax leftMotor1 = new CANSparkMax(1, MotorType.kBrushless);
-  private CANEncoder leftEncoder1 = leftMotor1.getEncoder();
-  private CANPIDController leftPidController1 = leftMotor1.getPIDController();
-  private CANSparkMax leftMotor2 = new CANSparkMax(2, MotorType.kBrushless);
-  private CANEncoder leftEncoder2 = leftMotor2.getEncoder();
-  private CANPIDController leftPidController2 = leftMotor2.getPIDController();
-  private CANSparkMax leftElevator = new CANSparkMax(3, MotorType.kBrushless);
-  private CANEncoder leftElevatorEncoder = leftElevator.getEncoder();
-  private CANPIDController leftElevatorPidController = leftElevator.getPIDController();
-  private CANSparkMax rightMotor1 = new CANSparkMax(4, MotorType.kBrushless);
-  private CANEncoder rightEncoder1 = rightMotor1.getEncoder();
-  private CANPIDController rightPidController1 = rightMotor1.getPIDController();
-  private CANSparkMax rightMotor2 = new CANSparkMax(5, MotorType.kBrushless);
-  private CANEncoder rightEncoder2 = rightMotor2.getEncoder();
-  private CANPIDController rightPidController2 = rightMotor2.getPIDController();
-  private CANSparkMax rightElevator = new CANSparkMax(6, MotorType.kBrushless);
-  private CANEncoder rightElevatorEncoder = rightElevator.getEncoder();
-  private CANPIDController rightElevatorPidController = rightElevator.getPIDController();
+ //navx variables
+   public AHRS navX = new AHRS(SPI.Port.kMXP);
+   public float imu_Yaw;
 
-  // elevator encoder counts
-  private double elevatorEncoderCounts = 0;
+ //vision variables
+   public NetworkTableInstance ntwrkInst = NetworkTableInstance.getDefault();
+   public NetworkTable visionTable;
+   public NetworkTable chameleonVision;
 
-  // SpeedControl
-  private DifferentialDrive m_myRobot;
+ //logic variables
 
-  SpeedControllerGroup m_left;
-  SpeedControllerGroup m_right;
+   //gear switching
+     public boolean lowGear = false;
+     public boolean switchGears = false;
 
-  // robotInit Start
-  @Override
-  public void robotInit() {
-    rightMotor1.setInverted(true);
-    rightMotor2.setInverted(true);
-    leftMotor1.setInverted(true);
-    leftMotor2.setInverted(true);
+   //feeder moving
+     public double finalEncoderCounts = 0;
+     public boolean move1Position = false;
 
-    m_left = new SpeedControllerGroup(leftMotor1, leftMotor2);
-    m_right = new SpeedControllerGroup(rightMotor1, rightMotor2);
+   //intake variables
+     public boolean intakeExtended = false;
+    
+//endregion
+@Override
+public void robotInit() {
+ m_Left.setInverted(true);
+ m_Right.setInverted(false);
 
-    // vision init
-    m_chooser.addDefault("Default Auto", kDefaultAuto);
-    m_chooser.addObject("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto Choices", m_chooser);
+ //region_CameraEnabling
+   new Thread(() -> {
+     UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+     camera.setResolution(1280, 720);
 
-    m_myRobot = new DifferentialDrive(m_left, m_right);
+     CvSink cvSink = CameraServer.getInstance().getVideo();
+     CvSource outputStream = CameraServer.getInstance().putVideo("Main Camera", 1280, 720);
 
-    m_myRobot.setSafetyEnabled(false);
-    kP = .000001;
-    kI = 0;
-    kD = 1;
-    kIz = 0;
-    L_kFF = .000192;
-    R_kFF = .000185;
-    kMaxOutput = 1;
-    kMinOutput = -1;
-    maxRPM = 5700;
+     Mat source = new Mat();
+     Mat output = new Mat();
 
-    maxVel = 7000;
+     while(!Thread.interrupted()) {
+       if (cvSink.grabFrame(source) == 0) {
+         continue;
+       }
+       Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2GRAY);
+       outputStream.putFrame(output);
+     }
+   }).start();
+ //end region
 
-    maxAcc = 1500;
-
-    allowedErrLeft = 0;
-    allowedErrRight = 0;
-
-    leftMotor1.setClosedLoopRampRate(.8);
-    rightMotor1.setClosedLoopRampRate(.8);
-    leftMotor2.setClosedLoopRampRate(.8);
-    rightMotor2.setClosedLoopRampRate(.8);
-
-    int smartMotionSlot = 0; // same gains for both sides, otherwise set 0-3
-
-    leftPidController1.setP(kP);
-    leftPidController1.setI(kI);
-    leftPidController1.setD(kD);
-    leftPidController1.setIZone(kIz);
-    leftPidController1.setFF(L_kFF);
-    leftPidController1.setOutputRange(kMinOutput, kMaxOutput);
-    /*
-     * leftPidController1.setSmartMotionMaxVelocity(maxVel, smartMotionSlot);
-     * leftPidController1.setSmartMotionMinOutputVelocity(minVel, smartMotionSlot);
-     * leftPidController1.setSmartMotionMaxAccel(maxAcc, smartMotionSlot);
-     * leftPidController1.setSmartMotionAllowedClosedLoopError(allowedErrLeft,
-     * smartMotionSlot);
-     */leftPidController2.setP(kP);
-    leftPidController2.setI(kI);
-    leftPidController2.setD(kD);
-    leftPidController2.setIZone(kIz);
-    leftPidController2.setFF(L_kFF);
-    leftPidController2.setOutputRange(kMinOutput, kMaxOutput);
-    /*
-     * leftPidController2.setSmartMotionMaxVelocity(maxVel, smartMotionSlot);
-     * leftPidController2.setSmartMotionMinOutputVelocity(minVel, smartMotionSlot);
-     * leftPidController2.setSmartMotionMaxAccel(maxAcc, smartMotionSlot);
-     * leftPidController2.setSmartMotionAllowedClosedLoopError(allowedErrLeft,
-     * smartMotionSlot);
-     */// and right
-    rightPidController1.setP(kP);
-    rightPidController1.setI(kI);
-    rightPidController1.setD(kD);
-    rightPidController1.setIZone(kIz);
-    rightPidController1.setFF(R_kFF);
-    rightPidController1.setOutputRange(kMinOutput, kMaxOutput);
-    /*
-     * rightPidController1.setSmartMotionMaxVelocity(maxVel, smartMotionSlot);
-     * rightPidController1.setSmartMotionMinOutputVelocity(minVel, smartMotionSlot);
-     * rightPidController1.setSmartMotionMaxAccel(maxAcc, smartMotionSlot);
-     * rightPidController1.setSmartMotionAllowedClosedLoopError(allowedErrRight,
-     * smartMotionSlot);
-     */rightPidController2.setP(kP);
-    rightPidController2.setI(kI);
-    rightPidController2.setD(kD);
-    rightPidController2.setIZone(kIz);
-    rightPidController2.setFF(R_kFF);
-    rightPidController2.setOutputRange(kMinOutput, kMaxOutput);
-    /*
-     * rightPidController2.setSmartMotionMaxVelocity(maxVel, smartMotionSlot);
-     * rightPidController2.setSmartMotionMinOutputVelocity(minVel, smartMotionSlot);
-     * rightPidController2.setSmartMotionMaxAccel(maxAcc, smartMotionSlot);
-     * rightPidController2.setSmartMotionAllowedClosedLoopError(allowedErrRight,
-     * smartMotionSlot);
-     */
-    SmartDashboard.putNumber("P Gain", kP);
-    SmartDashboard.putNumber("I Gain", kI);
-    SmartDashboard.putNumber("D Gain", kD);
-    SmartDashboard.putNumber("I Zone", kIz);
-    SmartDashboard.putNumber("Left Feed Forward", L_kFF);
-    SmartDashboard.putNumber("Right Feed Forward", R_kFF);
-    SmartDashboard.putNumber("Max Output", kMaxOutput);
-    SmartDashboard.putNumber("Min Output", kMinOutput);
-
-    // also display smart motion
-    // display Smart Motion coefficients
-    SmartDashboard.putNumber("Max Velocity", maxVel);
-    SmartDashboard.putNumber("Min Velocity", minVel);
-    SmartDashboard.putNumber("Max Acceleration", maxAcc);
-    SmartDashboard.putNumber("Allowed Closed Loop Error Left", allowedErrLeft);
-    SmartDashboard.putNumber("Allowed Closed Loop Error Right", allowedErrRight);
-    SmartDashboard.putNumber("Set Position", 0);
-    SmartDashboard.putNumber("Set Velocity", 0);
-
+ //region_SetPidCoefficients
+   pc_BottomShooter.setP(.1);
+   pc_BottomShooter.setD(1e-5);
+   pc_BottomShooter.setFF(.5);
+   pc_BottomShooter.setOutputRange(-1, 1);
+   pc_TopShooter.setP(.1);
+   pc_TopShooter.setD(1e-5);
+   pc_TopShooter.setFF(.5);
+   pc_TopShooter.setOutputRange(-1, 1);
+   pc_Feeder.setP(.1);
+   pc_Feeder.setI(1e-4);
+   pc_Feeder.setD(1);
+   pc_Feeder.setOutputRange(-1, 1);
+   pc_ControlPanel.setP(.1);
+   pc_ControlPanel.setI(1e-4);
+   pc_ControlPanel.setD(1);
+   pc_ControlPanel.setOutputRange(-1, 1);
+   pc_Climb.setP(.1);
+   pc_Climb.setI(1e-4);
+   pc_Climb.setD(1);
+   pc_Climb.setOutputRange(-1, 1);
+ //end region
   }
   // robotInit End
 
@@ -301,41 +251,55 @@ public class Robot extends TimedRobot {
     chameleonvision = inst.getTable("chameleon-vision");
     visiontable = chameleonvision.getSubTable("VisionTable");
     yaw = visiontable.getEntry("yaw").getDouble(0);
+    SmartDashboard.putNumber("YAW", yaw);
+    tuningConstant = -28;
+    if (xbox.getAButton() == true){
+      System.out.println("ooga");
+    }
 
     if (leftJoystick.getRawButton(1)) {
-
-
-      if (yaw > 0) {
+    SmartDashboard.putBoolean("button", true);
+      if (yaw > .5) {
+        SmartDashboard.putBoolean("turnR", true);
         leftMotor2.follow(leftMotor1);
         rightMotor2.follow(rightMotor1);
 
-        leftPidController1.setReference(yaw * -40, ControlType.kVelocity);
-        rightPidController1.setReference(yaw * -40, ControlType.kVelocity);
+        leftPidController1.setReference(yaw * tuningConstant , ControlType.kVelocity);
+        rightPidController1.setReference(yaw * tuningConstant , ControlType.kVelocity);
       }
       
-      else if (yaw < 0) {
+      else if (yaw < -.5) {
+        SmartDashboard.putBoolean("turnL", true);
         leftMotor2.follow(leftMotor1);
         rightMotor2.follow(rightMotor1);
 
-        leftPidController1.setReference(yaw * -40, ControlType.kVelocity);
-        rightPidController1.setReference(yaw * -40, ControlType.kVelocity);
+        leftPidController1.setReference(yaw * tuningConstant , ControlType.kVelocity);
+        rightPidController1.setReference(yaw * tuningConstant , ControlType.kVelocity);
       }
 
       else{
-        leftMotor1.stopMotor();
-        leftMotor2.stopMotor();
-        rightMotor1.stopMotor();
-        rightMotor2.stopMotor();
+        SmartDashboard.putBoolean("stop", true);
+        leftMotor2.follow(leftMotor1);
+        rightMotor2.follow(rightMotor1);
+
+        leftPidController1.setReference(0, ControlType.kVelocity);
+        rightPidController1.setReference(0, ControlType.kVelocity);
       }
     }
      else {
+      SmartDashboard.putBoolean("button", false);
+      SmartDashboard.putBoolean("turnR", false);
+      SmartDashboard.putBoolean("turnL", false);
+      SmartDashboard.putBoolean("stop", false);
       SmartDashboard.putString("TEST:", "NOTWORKING");
       leftPidController2.setReference(0, ControlType.kVelocity);
       rightPidController2.setReference(0, ControlType.kVelocity);
       leftPidController1.setReference(0, ControlType.kVelocity);
       rightPidController1.setReference(0, ControlType.kVelocity);
     }
+    
 
 System.out.println(yaw);
   }
 }
+//.........
