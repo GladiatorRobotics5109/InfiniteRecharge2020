@@ -114,6 +114,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_Left.setInverted(true);
     m_Right.setInverted(false);
+    pc_ControlPanel.setP(.5);
   }
 
 
@@ -152,6 +153,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
+    if (j_Operator.getRawButton(1)){
+
+     pc_ControlPanel.setReference(1000, ControlType.kPosition);
+    }
+    else {
+      m_ControlPanel.stopMotor();
+    }
+    SmartDashboard.putNumber("control panel", e_ControlPanel.getPosition());
 
   }
 
