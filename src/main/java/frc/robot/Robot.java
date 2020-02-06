@@ -92,6 +92,17 @@ public class Robot extends TimedRobot {
       public SpeedControllerGroup m_Right = new SpeedControllerGroup(m_Right1, m_Right2);
       public DifferentialDrive m_DriveTrain = new DifferentialDrive(m_Left, m_Right); //negative power makes bot move forward, positive power makes bot move packwards
 
+    //tuning variables
+      public float kP_Left1, kI_Left1, kD_Left1, kIz_Left1, kFF_Left1;
+      public float kP_Left2, kI_Left2, kD_Left2, kIz_Left2, kFF_Left2;
+      public float kP_Right1, kI_Right1, kD_Right1, kIz_Right1, kFF_Right1;
+      public float kP_Right2, kI_Right2, kD_Right2, kIz_Right2, kFF_Right2;
+      public float kP_Feeder, kI_Feeder, kD_Feeder, kIz_Feeder, kFF_Feeder;
+      public float kP_Tilting, kI_Tilting, kD_Tilting, kIz_Tilting, kFF_Tilting;
+      public float kP_TopShooter, kI_TopShooter, kD_TopShooter, kIz_TopShooter, kFF_TopShooter;
+      public float kP_BotShooter, kI_BotShooter, kD_BotShooter, kIz_BotShooter, kFF_BotShooter;
+      public float kP_ControlPanel, kI_ControlPanel, kD_ControlPanel, kIz_ControlPanel, kFF_ControlPanel;
+
     //navx variables
       public AHRS navX = new AHRS(SPI.Port.kMXP);
       public float imu_Yaw;
@@ -114,7 +125,121 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_Left.setInverted(true);
     m_Right.setInverted(false);
-    pc_ControlPanel.setP(.5);
+    //region_SettingPidVariables
+      kP_Left1 = 0;
+      kI_Left1 = 0;
+      kD_Left1 = 0;
+      kIz_Left1 = 0;
+      kFF_Left1 = 0;
+
+      kP_Left2 = 0;
+      kI_Left2 = 0;
+      kD_Left2 = 0;
+      kIz_Left2 = 0;
+      kFF_Left2 = 0;
+      
+      kP_Right1 = 0;
+      kI_Right1 = 0;
+      kD_Right1 = 0;
+      kIz_Right1 = 0;
+      kFF_Right1 = 0;
+      
+      kP_Right2 = 0;
+      kI_Right2 = 0;
+      kD_Right2 = 0;
+      kIz_Right2 = 0;
+      kFF_Right2 = 0;
+      
+      kP_Feeder = 0;
+      kI_Feeder = 0;
+      kD_Feeder = 0;
+      kIz_Feeder = 0;
+      kFF_Feeder = 0;
+      
+      kP_Tilting = 0;
+      kI_Tilting = 0;
+      kD_Tilting = 0;
+      kIz_Tilting = 0;
+      kFF_Tilting = 0;
+      
+      kP_TopShooter = 0;
+      kI_TopShooter = 0;
+      kD_TopShooter = 0;
+      kIz_TopShooter = 0;
+      kFF_TopShooter = 0;
+      
+      kP_BotShooter = 0;
+      kI_BotShooter = 0;
+      kD_BotShooter = 0;
+      kIz_BotShooter = 0;
+      kFF_BotShooter = 0;
+      
+      kP_ControlPanel = 0;
+      kI_ControlPanel = 0;
+      kD_ControlPanel = 0;
+      kIz_ControlPanel = 0;
+      kFF_ControlPanel = 0;
+      
+
+    //endregion
+
+    //region_SettingPidValues
+      pc_Left1.setP(kP_Left1);
+      pc_Left1.setI(kI_Left1);
+      pc_Left1.setD(kD_Left1);
+      pc_Left1.setIZone(kIz_Left1);
+      pc_Left1.setFF(kFF_Left1);
+
+      pc_Left2.setP(kP_Left2);
+      pc_Left2.setI(kI_Left2);
+      pc_Left2.setD(kD_Left2);
+      pc_Left2.setIZone(kIz_Left2);
+      pc_Left2.setFF(kFF_Left2);
+
+      pc_Right1.setP(kP_Right1);
+      pc_Right1.setI(kI_Right1);
+      pc_Right1.setD(kD_Right1);
+      pc_Right1.setIZone(kIz_Right1);
+      pc_Right1.setFF(kFF_Right1);
+
+      pc_Right2.setP(kP_Right2);
+      pc_Right2.setI(kI_Right2);
+      pc_Right2.setD(kD_Right2);
+      pc_Right2.setIZone(kIz_Right2);
+      pc_Right2.setFF(kFF_Right2);
+
+      pc_Feeder.setP(kP_Feeder);
+      pc_Feeder.setI(kI_Feeder);
+      pc_Feeder.setD(kD_Feeder);
+      pc_Feeder.setIZone(kIz_Feeder);
+      pc_Feeder.setFF(kFF_Feeder);
+
+      pc_Tilting.setP(kP_Tilting);
+      pc_Tilting.setI(kI_Tilting);
+      pc_Tilting.setD(kD_Tilting);
+      pc_Tilting.setIZone(kIz_Tilting);
+      pc_Tilting.setFF(kFF_Tilting);
+
+      pc_TopShooter.setP(kP_TopShooter);
+      pc_TopShooter.setI(kI_TopShooter);
+      pc_TopShooter.setD(kD_TopShooter);
+      pc_TopShooter.setIZone(kIz_TopShooter);
+      pc_TopShooter.setFF(kFF_TopShooter);
+
+      pc_BotShooter.setP(kP_BotShooter);
+      pc_BotShooter.setI(kI_BotShooter);
+      pc_BotShooter.setD(kD_BotShooter);
+      pc_BotShooter.setIZone(kIz_BotShooter);
+      pc_BotShooter.setFF(kFF_BotShooter);
+
+      pc_ControlPanel.setP(kP_ControlPanel);
+      pc_ControlPanel.setI(kI_ControlPanel);
+      pc_ControlPanel.setD(kD_ControlPanel);
+      pc_ControlPanel.setIZone(kIz_ControlPanel);
+      pc_ControlPanel.setFF(kFF_ControlPanel);
+
+    //endregion
+
   }
 
 
@@ -155,7 +280,7 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     if (j_Operator.getRawButton(1)){
 
-     pc_ControlPanel.setReference(1000, ControlType.kPosition);
+     pc_ControlPanel.setReference(300, ControlType.kPosition);
     }
     else {
       m_ControlPanel.stopMotor();
