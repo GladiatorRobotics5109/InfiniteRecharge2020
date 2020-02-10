@@ -93,15 +93,20 @@ public class Robot extends TimedRobot {
       public DifferentialDrive m_DriveTrain = new DifferentialDrive(m_Left, m_Right); //negative power makes bot move forward, positive power makes bot move packwards
 
     //tuning variables
-      public float kP_Left1, kI_Left1, kD_Left1, kIz_Left1, kFF_Left1;
-      public float kP_Left2, kI_Left2, kD_Left2, kIz_Left2, kFF_Left2;
-      public float kP_Right1, kI_Right1, kD_Right1, kIz_Right1, kFF_Right1;
-      public float kP_Right2, kI_Right2, kD_Right2, kIz_Right2, kFF_Right2;
-      public float kP_Feeder, kI_Feeder, kD_Feeder, kIz_Feeder, kFF_Feeder;
-      public float kP_Tilting, kI_Tilting, kD_Tilting, kIz_Tilting, kFF_Tilting;
-      public float kP_TopShooter, kI_TopShooter, kD_TopShooter, kIz_TopShooter, kFF_TopShooter;
-      public float kP_BotShooter, kI_BotShooter, kD_BotShooter, kIz_BotShooter, kFF_BotShooter;
-      public float kP_ControlPanel, kI_ControlPanel, kD_ControlPanel, kIz_ControlPanel, kFF_ControlPanel;
+      public double kP_Left1, kI_Left1, kD_Left1, kIz_Left1, kFF_Left1;
+      public double kP_Left2, kI_Left2, kD_Left2, kIz_Left2, kFF_Left2;
+      public double kP_Right1, kI_Right1, kD_Right1, kIz_Right1, kFF_Right1;
+      public double kP_Right2, kI_Right2, kD_Right2, kIz_Right2, kFF_Right2;
+      public double kP_Feeder, kI_Feeder, kD_Feeder, kIz_Feeder, kFF_Feeder;
+      public double kP_Tilting, kI_Tilting, kD_Tilting, kIz_Tilting, kFF_Tilting;
+      public double kP_TopShooter, kI_TopShooter, kD_TopShooter, kIz_TopShooter, kFF_TopShooter;
+      public double kP_BotShooter, kI_BotShooter, kD_BotShooter, kIz_BotShooter, kFF_BotShooter;
+      public double kP_ControlPanel, kI_ControlPanel, kD_ControlPanel, kIz_ControlPanel, kFF_ControlPanel;
+
+    //solenoid variables
+      public Solenoid s_LeftIntake = new Solenoid(7);
+      public Solenoid s_RightIntake = new Solenoid(5);
+      public Solenoid s_ControlPanel = new Solenoid(6);
 
     //navx variables
       public AHRS navX = new AHRS(SPI.Port.kMXP);
@@ -112,12 +117,23 @@ public class Robot extends TimedRobot {
       public NetworkTable visionTable;
       public NetworkTable chameleonVision;
 
+    //sensors
+      public DigitalInput interruptSensor = new DigitalInput(1);
+
     //logic variables
 
       //gear switching
         public boolean lowGear;
         public boolean switchGears;
       
+      //intake booleans
+        public boolean intakeExtended = false;
+
+      //ball counting variables
+        public boolean oldBallBoolean = false;
+        public boolean newBallBoolean = false;
+        public boolean ballDebounceBoolean = false;
+        public int ballCounter = 0;
 
   //endregion
  
@@ -150,7 +166,7 @@ public class Robot extends TimedRobot {
       kIz_Right2 = 0;
       kFF_Right2 = 0;
       
-      kP_Feeder = 0;
+      kP_Feeder = .5;
       kI_Feeder = 0;
       kD_Feeder = 0;
       kIz_Feeder = 0;
@@ -174,7 +190,7 @@ public class Robot extends TimedRobot {
       kIz_BotShooter = 0;
       kFF_BotShooter = 0;
       
-      kP_ControlPanel = 0;
+      kP_ControlPanel = 1;
       kI_ControlPanel = 0;
       kD_ControlPanel = 0;
       kIz_ControlPanel = 0;
@@ -251,7 +267,7 @@ public class Robot extends TimedRobot {
  
   @Override
   public void autonomousPeriodic() {
- 
+    intake();
   }
 
 
@@ -265,27 +281,106 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     joystickControl();
     gearSwitching();
+    /*if(j_Operator.getRawButton(1)){
+      m_TopShooter.set(1);
+      m_BotShooter.set(-1);
+    }
+    else {
+      m_TopShooter.stopMotor();
+      m_BotShooter.stopMotor();
+    }
+
+    m_Feeder.set(j_Operator.getY()*.5);
+    */
+
+    if (j_Operator.getRawButton(1)){
+      newBallBoolean = interruptSensor.get();
+      if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
+        Timer.delay(.375);
+        ballCounter++;
+        if(ballCounter < 5) {
+          e_Feeder.setPosition(0);
+          pc_Feeder.setReference(93, ControlType.kPosition);
+        }
+      }
+      else if (newBallBoolean == true){
+        m_Intake.set(.25);
+      }
+      else if (ballDebounceBoolean == true){
+        ballDebounceBoolean = false;
+      }
+
+      else if (oldBallBoolean == true && newBallBoolean == false){
+        ballDebounceBoolean = true;
+      }
+
+      else{
+        m_Intake.set(.75);
+            }
+    }
+    else {
+      intake();
+      m_Feeder.set(j_Operator.getY());
+    }
+
+    if (ballCounter > 4){
+      intakeExtended = false;
+    }
+
+    if (j_Operator.getRawButton(4)){
+      m_TopShooter.set(j_Operator.getThrottle());
+      m_BotShooter.set(-j_Operator.getThrottle());
+      ballCounter = 0;
+    }
+    else{
+      m_TopShooter.stopMotor();
+      m_BotShooter.stopMotor();
+    }
+
+    oldBallBoolean = newBallBoolean;
+
+
     SmartDashboard.putNumber("right joy", j_Right.getY());
     SmartDashboard.putNumber("left joy", j_Left.getY());
-
+    SmartDashboard.putBoolean("Do I see ball", interruptSensor.get());
     SmartDashboard.putNumber("right encoder 1 ", e_Right1.getPosition());
     SmartDashboard.putNumber("right encoder 2 ", e_Right2.getPosition());
     SmartDashboard.putNumber("left encoder 1 ", e_Left1.getPosition());
     SmartDashboard.putNumber("left encoder 2 ", e_Left2.getPosition());
+    SmartDashboard.putNumber("feeder position", e_Feeder.getPosition());
+    SmartDashboard.putNumber("feeder velocity", e_Feeder.getVelocity());
+    SmartDashboard.putNumber("ball counter", ballCounter);
+
 
   }
-
+  @Override
+  public void testInit() {
+    e_Feeder.setPosition(0);
+  }
 
   @Override
   public void testPeriodic() {
-    if (j_Operator.getRawButton(1)){
+    intake();
+    if (j_Left.getRawButton(1)){
 
-     pc_ControlPanel.setReference(300, ControlType.kPosition);
+     pc_Feeder.setReference(93, ControlType.kPosition);
     }
     else {
-      m_ControlPanel.stopMotor();
+      m_Feeder.set(j_Operator.getY()*.5);
+      e_Feeder.setPosition(0);
     }
-    SmartDashboard.putNumber("control panel", e_ControlPanel.getPosition());
+    SmartDashboard.putNumber("control panel position", e_Feeder.getPosition());
+    SmartDashboard.putNumber("control panel velocity", e_Feeder.getVelocity());
+
+    if (j_Operator.getRawButton(12)){
+      m_TopShooter.set(1);
+      m_BotShooter.set(-1);
+      ballCounter = 0;
+    }
+    else{
+      m_TopShooter.stopMotor();
+      m_BotShooter.stopMotor();
+    }
 
   }
 
@@ -315,9 +410,32 @@ public class Robot extends TimedRobot {
         switchGears = true;
       }
     }
-    
 
-
+    public void intake(){ //method for spinning our intake and for ejecting it
+      if(j_Left.getRawButton(1)){
+        m_Intake.set(1);
+        intakeExtended = true;
+      }
+      else{
+        if(j_Left.getRawButton(6)){
+          m_Intake.set(-1);
+        }
+        else{
+          m_Intake.set(0);
+        }
+      }
+      if(intakeExtended){
+        s_LeftIntake.set(true);
+        s_RightIntake.set(true);
+        if(j_Left.getRawButton(2)){
+          intakeExtended = false;
+        }
+      }
+      else{
+        s_LeftIntake.set(false);
+        s_RightIntake.set(false);
+      }
+    }    
 
   //endregion
 
