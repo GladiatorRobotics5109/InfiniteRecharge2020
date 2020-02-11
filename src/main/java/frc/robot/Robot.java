@@ -363,7 +363,8 @@ public class Robot extends TimedRobot {
   }
   @Override
   public void testInit() {
-
+    e_Tilting.setPosition(0);
+    pc_Tilting.setReference(60, ControlType.kPosition);
   }
 
   @Override
@@ -381,6 +382,9 @@ public class Robot extends TimedRobot {
       pc_BotShooter.setReference(-Kshoot * Math.pow(dToGoal, .5), ControlType.kVelocity);
 
     }
+    m_Feeder.set(j_Operator.getY());
+
+    SmartDashboard.putNumber("dToGoal", dToGoal);
 
 
 
