@@ -119,6 +119,7 @@ public class Robot extends TimedRobot {
       public double chameleon_Yaw;
       public double chameleon_Pitch;
       public double dToGoal;
+      public double Kshoot;
 
     //sensors
       public DigitalInput interruptSensor = new DigitalInput(1);
@@ -274,7 +275,7 @@ public class Robot extends TimedRobot {
  
   @Override
   public void autonomousPeriodic() {
-    intake();
+    pc_Tilting.setReference(60, ControlType.kPosition);
   }
 
 
@@ -371,6 +372,15 @@ public class Robot extends TimedRobot {
     visionTable = chameleonVision.getSubTable("VisionTable");
     chameleon_Yaw = visionTable.getEntry("yaw").getDouble(0);
     chameleon_Pitch = visionTable.getEntry("pitch").getDouble(0);
+    dToGoal = 1.822/(Math.tan(Math.toRadians(30 + chameleon_Pitch)));
+    Kshoot = 475.98;
+
+    if (j_Operator.getRawButton(7)) {
+
+      pc_TopShooter.setReference(Kshoot * Math.pow(dToGoal, .5), ControlType.kVelocity);
+      pc_BotShooter.setReference(-Kshoot * Math.pow(dToGoal, .5), ControlType.kVelocity);
+
+    }
 
 
 
