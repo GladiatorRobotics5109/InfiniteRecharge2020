@@ -334,7 +334,7 @@ public class Robot extends TimedRobot {
     if (ballCounter > 4){
       intakeExtended = false;
     }
-
+    
     if (j_Operator.getRawButton(4)){
       m_TopShooter.set(j_Operator.getThrottle());
       m_BotShooter.set(-j_Operator.getThrottle());
