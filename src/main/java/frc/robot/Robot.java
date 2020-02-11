@@ -135,6 +135,10 @@ public class Robot extends TimedRobot {
         public boolean ballDebounceBoolean = false;
         public int ballCounter = 0;
 
+      //shooter ramping boolean
+        public boolean amRamping = true;
+        public int amRampingCounter = 0;
+
   //endregion
  
   @Override
@@ -172,23 +176,23 @@ public class Robot extends TimedRobot {
       kIz_Feeder = 0;
       kFF_Feeder = 0;
       
-      kP_Tilting = 0;
+      kP_Tilting = 1;
       kI_Tilting = 0;
       kD_Tilting = 0;
       kIz_Tilting = 0;
       kFF_Tilting = 0;
       
-      kP_TopShooter = 0;
+      kP_TopShooter = .00025;
       kI_TopShooter = 0;
-      kD_TopShooter = 0;
+      kD_TopShooter = 0.01;
       kIz_TopShooter = 0;
-      kFF_TopShooter = 0;
+      kFF_TopShooter = .00017969;
       
-      kP_BotShooter = 0;
+      kP_BotShooter = .00035;
       kI_BotShooter = 0;
-      kD_BotShooter = 0;
+      kD_BotShooter = .0001;
       kIz_BotShooter = 0;
-      kFF_BotShooter = 0;
+      kFF_BotShooter = .00018501;
       
       kP_ControlPanel = 1;
       kI_ControlPanel = 0;
@@ -360,27 +364,30 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
-    intake();
-    if (j_Left.getRawButton(1)){
-
-     pc_Feeder.setReference(93, ControlType.kPosition);
-    }
-    else {
-      m_Feeder.set(j_Operator.getY()*.5);
-      e_Feeder.setPosition(0);
-    }
-    SmartDashboard.putNumber("control panel position", e_Feeder.getPosition());
-    SmartDashboard.putNumber("control panel velocity", e_Feeder.getVelocity());
-
-    if (j_Operator.getRawButton(12)){
-      m_TopShooter.set(1);
-      m_BotShooter.set(-1);
-      ballCounter = 0;
+    if (j_Operator.getRawButton(1)) {
+      if(amRampingCounter < 50){
+        pc_TopShooter.setReference(10000*j_Operator.getZ()-3000+44*amRampingCounter, ControlType.kVelocity);
+        pc_BotShooter.setReference(-10000*j_Operator.getZ()+3000-44*amRampingCounter, ControlType.kVelocity); 
+        amRampingCounter ++;
+      }
+      else{
+      pc_TopShooter.setReference(10000*j_Operator.getZ(), ControlType.kVelocity);
+      pc_BotShooter.setReference(-10000*j_Operator.getZ(), ControlType.kVelocity);
+      }
     }
     else{
+      amRampingCounter = 0;
       m_TopShooter.stopMotor();
       m_BotShooter.stopMotor();
     }
+    SmartDashboard.putNumber("top motor encoders", e_TopShooter.getPosition());
+    SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
+    SmartDashboard.putNumber("top motor counts perrevolutions", e_TopShooter.getCountsPerRevolution());
+    SmartDashboard.putNumber("target", 10000*j_Operator.getZ());
+    SmartDashboard.putNumber("bot motor encoders", e_BotShooter.getPosition());
+    SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
+    SmartDashboard.putNumber("bot motor counts perrevolutions", e_BotShooter.getCountsPerRevolution());
+    SmartDashboard.putNumber("amRampingCounter", amRampingCounter);
 
   }
 
