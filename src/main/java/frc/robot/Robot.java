@@ -116,6 +116,9 @@ public class Robot extends TimedRobot {
       public NetworkTableInstance ntwrkInst = NetworkTableInstance.getDefault();
       public NetworkTable visionTable;
       public NetworkTable chameleonVision;
+      public double chameleon_Yaw;
+      public double chameleon_Pitch;
+      public double dToGoal;
 
     //sensors
       public DigitalInput interruptSensor = new DigitalInput(1);
@@ -359,35 +362,17 @@ public class Robot extends TimedRobot {
   }
   @Override
   public void testInit() {
-    e_Feeder.setPosition(0);
+
   }
 
   @Override
   public void testPeriodic() {
-    if (j_Operator.getRawButton(1)) {
-      if(amRampingCounter < 50){
-        pc_TopShooter.setReference(10000*j_Operator.getZ()-3000+44*amRampingCounter, ControlType.kVelocity);
-        pc_BotShooter.setReference(-10000*j_Operator.getZ()+3000-44*amRampingCounter, ControlType.kVelocity); 
-        amRampingCounter ++;
-      }
-      else{
-      pc_TopShooter.setReference(10000*j_Operator.getZ(), ControlType.kVelocity);
-      pc_BotShooter.setReference(-10000*j_Operator.getZ(), ControlType.kVelocity);
-      }
-    }
-    else{
-      amRampingCounter = 0;
-      m_TopShooter.stopMotor();
-      m_BotShooter.stopMotor();
-    }
-    SmartDashboard.putNumber("top motor encoders", e_TopShooter.getPosition());
-    SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
-    SmartDashboard.putNumber("top motor counts perrevolutions", e_TopShooter.getCountsPerRevolution());
-    SmartDashboard.putNumber("target", 10000*j_Operator.getZ());
-    SmartDashboard.putNumber("bot motor encoders", e_BotShooter.getPosition());
-    SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
-    SmartDashboard.putNumber("bot motor counts perrevolutions", e_BotShooter.getCountsPerRevolution());
-    SmartDashboard.putNumber("amRampingCounter", amRampingCounter);
+    chameleonVision = ntwrkInst.getTable("chameleon-vision");
+    visionTable = chameleonVision.getSubTable("VisionTable");
+    chameleon_Yaw = visionTable.getEntry("yaw").getDouble(0);
+    chameleon_Pitch = visionTable.getEntry("pitch").getDouble(0);
+
+
 
   }
 
