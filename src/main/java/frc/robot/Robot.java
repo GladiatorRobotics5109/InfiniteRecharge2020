@@ -436,11 +436,39 @@ public class Robot extends TimedRobot {
       m_Feeder.stopMotor();
     }
 
+    if (j_Operator.getRawButton(1)){
+
+    if (chameleon_Yaw < -2) {
+      pc_Right1.setReference(-500, ControlType.kVelocity);
+      pc_Right2.setReference(-500, ControlType.kVelocity);
+      pc_Left1.setReference(-500, ControlType.kVelocity);
+      pc_Left2.setReference(-500, ControlType.kVelocity);
+
+    }
+
+    else if (chameleon_Yaw > 2) {
+      pc_Right1.setReference(500, ControlType.kVelocity);
+      pc_Right2.setReference(500, ControlType.kVelocity);
+      pc_Left1.setReference(500, ControlType.kVelocity);
+      pc_Left2.setReference(500, ControlType.kVelocity);
+    }
+
+    else {
+      m_Left1.stopMotor();
+      m_Left2.stopMotor();
+      m_Right1.stopMotor();
+      m_Right2.stopMotor();
+    }
+
+    }
+    
+
     SmartDashboard.putNumber("dToGoal", dToGoal);
     SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
     SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
     SmartDashboard.putNumber("target", Kshoot * Math.pow(dToGoal, .5));
     SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
+    SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
 
     if (j_Operator.getRawButton(9)){
       pc_Tilting.setReference(65, ControlType.kPosition);
