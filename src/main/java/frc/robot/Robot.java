@@ -142,11 +142,13 @@ public class Robot extends TimedRobot {
 
       //shooting booleans
         public boolean getting_dToGoal = false;
+        public boolean readyToFeed = false;
 
   //endregion
  
   @Override
   public void robotInit() {
+    e_Tilting.setPosition(0);
     m_Left.setInverted(true);
     m_Right.setInverted(false);
     //region_SettingPidVariables
@@ -277,7 +279,8 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     //set the tilting motor to 60 degrees
-    pc_Tilting.setReference(60, ControlType.kPosition);
+
+
   }
 
 
@@ -304,7 +307,7 @@ public class Robot extends TimedRobot {
     */
 
     if (j_Operator.getRawButton(1)){
-      newBallBoolean = interruptSensor.get();
+      /*newBallBoolean = interruptSensor.get();
       if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
         Timer.delay(.375);
         ballCounter++;
@@ -326,12 +329,14 @@ public class Robot extends TimedRobot {
 
       else{
         m_Intake.set(.5);
-            }
+            }*/
+            pc_Feeder.setReference(94, ControlType.kPosition);
     }
     else {
       intake();
       m_Feeder.set(j_Operator.getY());
-    }
+      e_Feeder.setPosition(0);
+    } 
 
     if (ballCounter > 4){
       intakeExtended = false;
@@ -365,9 +370,8 @@ public class Robot extends TimedRobot {
   }
   @Override
   public void testInit() {
-    e_Tilting.setPosition(0);
-    pc_Tilting.setReference(60, ControlType.kPosition);
-    m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
+
+    //pc_Tilting.setReference(60, ControlType.kPosition);
   }
 
   @Override
@@ -381,16 +385,38 @@ public class Robot extends TimedRobot {
 
     //when pressing operator button 7
     if (j_Operator.getRawButton(7)) {
+      m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
+      m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
       if (getting_dToGoal){
         dToGoal = 1.822/(Math.tan(Math.toRadians(30 + chameleon_Pitch)));
         getting_dToGoal = false;
       }
       //set the velocity of the shooter
       //pc_TopShooter.setReference(Kshoot * .85 * Math.pow(dToGoal, .5), ControlType.kVelocity);
-      pc_BotShooter.setReference(-5000, ControlType.kVelocity);
-      //m_BotShooter.set(-.8);
-      //m_TopShooter.set(.6);
-      m_Feeder.set(.3);
+      //pc_BotShooter.setReference(-5000, ControlType.kVelocity);
+      //pc_TopShooter.setReference(5000, ControlType.kVelocity);
+      if (e_BotShooter.getVelocity() > -5200){
+        m_BotShooter.set(-1);
+      }
+      else {
+        m_BotShooter.set(0);
+        readyToFeed = true;
+      }
+
+      if ( e_TopShooter.getVelocity() < 5200){
+        m_TopShooter.set(1);
+      }
+      else {
+        m_TopShooter.set(0);
+      }
+
+      if (readyToFeed = true){
+        m_Feeder.set(.61);
+      }
+
+      else {
+        m_Feeder.stopMotor();
+      }
       /*
       if (j_Operator.getRawButton(8)){
         m_Feeder.set(.5);
@@ -402,6 +428,9 @@ public class Robot extends TimedRobot {
 
     }
     else {
+      readyToFeed = false;
+      m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
+      m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
       getting_dToGoal = true;
       m_TopShooter.stopMotor();
       m_BotShooter.stopMotor();
@@ -412,8 +441,11 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
     SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
     SmartDashboard.putNumber("target", Kshoot * Math.pow(dToGoal, .5));
+    SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
 
-
+    if (j_Operator.getRawButton(9)){
+      pc_Tilting.setReference(65, ControlType.kPosition);
+    }
 
   }
 
