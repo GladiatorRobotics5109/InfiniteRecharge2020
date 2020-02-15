@@ -438,27 +438,27 @@ public class Robot extends TimedRobot {
 
     if (j_Operator.getRawButton(1)){
 
-    if (chameleon_Yaw < -2) {
-      pc_Right1.setReference(-500, ControlType.kVelocity);
-      pc_Right2.setReference(-500, ControlType.kVelocity);
-      pc_Left1.setReference(-500, ControlType.kVelocity);
-      pc_Left2.setReference(-500, ControlType.kVelocity);
+      if (chameleon_Yaw < -2) {
+        pc_Right1.setReference(-500, ControlType.kVelocity);
+        pc_Right2.setReference(-500, ControlType.kVelocity);
+        pc_Left1.setReference(-500, ControlType.kVelocity);
+        pc_Left2.setReference(-500, ControlType.kVelocity);
 
-    }
+      }
 
-    else if (chameleon_Yaw > 2) {
-      pc_Right1.setReference(500, ControlType.kVelocity);
-      pc_Right2.setReference(500, ControlType.kVelocity);
-      pc_Left1.setReference(500, ControlType.kVelocity);
-      pc_Left2.setReference(500, ControlType.kVelocity);
-    }
+      else if (chameleon_Yaw > 2) {
+        pc_Right1.setReference(500, ControlType.kVelocity);
+        pc_Right2.setReference(500, ControlType.kVelocity);
+        pc_Left1.setReference(500, ControlType.kVelocity);
+        pc_Left2.setReference(500, ControlType.kVelocity);
+      }
 
-    else {
-      m_Left1.stopMotor();
-      m_Left2.stopMotor();
-      m_Right1.stopMotor();
-      m_Right2.stopMotor();
-    }
+      else {
+        m_Left1.stopMotor();
+        m_Left2.stopMotor();
+        m_Right1.stopMotor();
+        m_Right2.stopMotor();
+      }
 
     }
     
