@@ -307,7 +307,7 @@ public class Robot extends TimedRobot {
     */
 
     if (j_Operator.getRawButton(1)){
-      /*newBallBoolean = interruptSensor.get();
+      newBallBoolean = interruptSensor.get();
       if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
         Timer.delay(.375);
         ballCounter++;
@@ -317,7 +317,7 @@ public class Robot extends TimedRobot {
         }
       }
       else if (newBallBoolean == true){
-        m_Intake.set(.25);
+        m_Intake.set(0);
       }
       else if (ballDebounceBoolean == true){
         ballDebounceBoolean = false;
@@ -329,8 +329,7 @@ public class Robot extends TimedRobot {
 
       else{
         m_Intake.set(.5);
-            }*/
-            pc_Feeder.setReference(94, ControlType.kPosition);
+            }
     }
     else {
       intake();
