@@ -152,31 +152,31 @@ public class Robot extends TimedRobot {
     m_Left.setInverted(true);
     m_Right.setInverted(false);
     //region_SettingPidVariables
-      kP_Left1 = 0;
+      kP_Left1 = .0001;
       kI_Left1 = 0;
-      kD_Left1 = 0;
+      kD_Left1 = 0.01;
       kIz_Left1 = 0;
-      kFF_Left1 = 0;
+      kFF_Left1 = .0001746724891;
 
-      kP_Left2 = 0;
+      kP_Left2 = .0001;
       kI_Left2 = 0;
-      kD_Left2 = 0;
+      kD_Left2 = 0.01;
       kIz_Left2 = 0;
-      kFF_Left2 = 0;
+      kFF_Left2 = .0001746724891;
       
-      kP_Right1 = 0;
+      kP_Right1 = .0001;
       kI_Right1 = 0;
-      kD_Right1 = 0;
+      kD_Right1 = 0.01;
       kIz_Right1 = 0;
-      kFF_Right1 = 0;
+      kFF_Right1 = .0001746724891;
       
-      kP_Right2 = 0;
+      kP_Right2 = .0001;
       kI_Right2 = 0;
-      kD_Right2 = 0;
+      kD_Right2 = 0.01;
       kIz_Right2 = 0;
-      kFF_Right2 = 0;
-      
-      kP_Feeder = .5;
+      kFF_Right2 = .0001746724891;
+        
+      kP_Feeder = 1;
       kI_Feeder = 0;
       kD_Feeder = 0;
       kIz_Feeder = 0;
@@ -292,19 +292,40 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    joystickControl();
-    gearSwitching();
-    /*if(j_Operator.getRawButton(1)){
-      m_TopShooter.set(1);
-      m_BotShooter.set(-1);
+    chameleonVision = ntwrkInst.getTable("chameleon-vision");
+    visionTable = chameleonVision.getSubTable("VisionTable");
+    chameleon_Yaw = visionTable.getEntry("yaw").getDouble(0);
+    chameleon_Pitch = visionTable.getEntry("pitch").getDouble(0);
+
+    if (j_Right.getRawButton(1)){
+
+      if (chameleon_Yaw < -2) {
+        pc_Right1.setReference(-500, ControlType.kVelocity);
+        pc_Right2.setReference(-500, ControlType.kVelocity);
+        pc_Left1.setReference(-500, ControlType.kVelocity);
+        pc_Left2.setReference(-500, ControlType.kVelocity);
+
+      }
+
+      else if (chameleon_Yaw > 2) {
+        pc_Right1.setReference(500, ControlType.kVelocity);
+        pc_Right2.setReference(500, ControlType.kVelocity);
+        pc_Left1.setReference(500, ControlType.kVelocity);
+        pc_Left2.setReference(500, ControlType.kVelocity);
+      }
+
+      else {
+        m_Left1.stopMotor();
+        m_Left2.stopMotor();
+        m_Right1.stopMotor();
+        m_Right2.stopMotor();
+      }
+
     }
     else {
-      m_TopShooter.stopMotor();
-      m_BotShooter.stopMotor();
+      joystickControl();
+      gearSwitching();
     }
-
-    m_Feeder.set(j_Operator.getY()*.5);
-    */
 
     if (j_Operator.getRawButton(1)){
       newBallBoolean = interruptSensor.get();
@@ -328,28 +349,52 @@ public class Robot extends TimedRobot {
       }
 
       else{
-        m_Intake.set(.5);
+        m_Intake.set(.75);
             }
     }
+    else if (j_Operator.getRawButton(2)) {
+      m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
+      m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
+      if (e_BotShooter.getVelocity() > -5300){
+        m_BotShooter.set(-1);
+      }
+      else {
+        m_BotShooter.set(0);
+        readyToFeed = true;
+      }
+
+      if ( e_TopShooter.getVelocity() < 5300){
+        m_TopShooter.set(1);
+      }
+      else {
+        m_TopShooter.set(0);
+      }
+
+      if (readyToFeed = true){
+        m_Feeder.set(.55);
+      }
+
+      else {
+        m_Feeder.stopMotor();
+      }
+    }
+
     else {
       intake();
-      m_Feeder.set(j_Operator.getY());
       e_Feeder.setPosition(0);
+      readyToFeed = false;
+      m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
+      m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
+      m_TopShooter.stopMotor();
+      m_BotShooter.stopMotor();
+      m_Feeder.stopMotor();
+
     } 
 
     if (ballCounter > 4){
       intakeExtended = false;
     }
     
-    if (j_Operator.getRawButton(4)){
-      m_TopShooter.set(j_Operator.getThrottle());
-      m_BotShooter.set(-j_Operator.getThrottle());
-      ballCounter = 0;
-    }
-    else{
-      m_TopShooter.stopMotor();
-      m_BotShooter.stopMotor();
-    }
 
     oldBallBoolean = newBallBoolean;
 
@@ -364,6 +409,24 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("feeder position", e_Feeder.getPosition());
     SmartDashboard.putNumber("feeder velocity", e_Feeder.getVelocity());
     SmartDashboard.putNumber("ball counter", ballCounter);
+    SmartDashboard.putNumber("dToGoal", dToGoal);
+    SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
+    SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
+    SmartDashboard.putNumber("target", Kshoot * Math.pow(dToGoal, .5));
+    SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
+    SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
+
+    if (j_Operator.getRawButton(9)){
+      pc_Tilting.setReference(64.12, ControlType.kPosition);
+    }
+
+    if (j_Operator.getRawButton(8)){
+      pc_Tilting.setReference(0, ControlType.kPosition);
+    }
+
+    if (j_Operator.getRawButton(4)){
+      ballCounter = 0;
+    }
 
 
   }
@@ -433,7 +496,9 @@ public class Robot extends TimedRobot {
       getting_dToGoal = true;
       m_TopShooter.stopMotor();
       m_BotShooter.stopMotor();
-      m_Feeder.stopMotor();
+      m_Feeder.set(j_Operator.getY());
+      intake();
+
     }
 
     if (j_Operator.getRawButton(1)){
@@ -488,7 +553,7 @@ public class Robot extends TimedRobot {
     }
 
     public void gearSwitching(){ //method for switching our bot to lowgear(less sensitive) or highgear(speedyboi)
-      if(j_Right.getRawButton(1) && switchGears){
+      if(j_Right.getRawButton(2) && switchGears){
         if(lowGear){
           lowGear = false;
           switchGears = false;
@@ -498,7 +563,7 @@ public class Robot extends TimedRobot {
           switchGears = false;
         }
       }
-      else if(!j_Right.getRawButton(1)){
+      else if(!j_Right.getRawButton(2)){
         switchGears = true;
       }
     }
