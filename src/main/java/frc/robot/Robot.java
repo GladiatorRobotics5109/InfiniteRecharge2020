@@ -18,7 +18,7 @@ package frc.robot;
     import edu.wpi.first.networktables.*;
     import edu.wpi.first.wpilibj.smartdashboard.*;
     import edu.wpi.first.wpilibj.drive.*;
-    import edu.wpi.first.wpilibj.SpeedControllerGroup.*;
+    //import edu.wpi.first.wpilibj.SpeedControllerGroup.*;
 
   //spark max/neos imports
     import com.revrobotics.*;
@@ -176,11 +176,11 @@ public class Robot extends TimedRobot {
       kIz_Right2 = 0;
       kFF_Right2 = .0001746724891;
         
-      kP_Feeder = 1;
+      kP_Feeder = .00001;
       kI_Feeder = 0;
       kD_Feeder = 0;
       kIz_Feeder = 0;
-      kFF_Feeder = 0;
+      kFF_Feeder = .00008373806733;
       
       kP_Tilting = 1;
       kI_Tilting = 0;
@@ -239,6 +239,7 @@ public class Robot extends TimedRobot {
       pc_Feeder.setD(kD_Feeder);
       pc_Feeder.setIZone(kIz_Feeder);
       pc_Feeder.setFF(kFF_Feeder);
+      pc_Feeder.setOutputRange(-1, 1);
 
       pc_Tilting.setP(kP_Tilting);
       pc_Tilting.setI(kI_Tilting);
@@ -328,6 +329,8 @@ public class Robot extends TimedRobot {
     }
 
     if (j_Operator.getRawButton(1)){
+      pc_Feeder.setP(.5);
+      pc_Feeder.setFF(0);
       newBallBoolean = interruptSensor.get();
       if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
         Timer.delay(.375);
@@ -349,13 +352,14 @@ public class Robot extends TimedRobot {
       }
 
       else{
-        m_Intake.set(.75);
+        m_Intake.set(1);
             }
     }
     else if (j_Operator.getRawButton(2)) {
+      ballCounter = 0;
       m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
       m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
-      if (e_BotShooter.getVelocity() > -5300){
+      if (e_BotShooter.getVelocity() > -5350){
         m_BotShooter.set(-1);
       }
       else {
@@ -363,7 +367,7 @@ public class Robot extends TimedRobot {
         readyToFeed = true;
       }
 
-      if ( e_TopShooter.getVelocity() < 5300){
+      if ( e_TopShooter.getVelocity() < 5350){
         m_TopShooter.set(1);
       }
       else {
@@ -371,7 +375,9 @@ public class Robot extends TimedRobot {
       }
 
       if (readyToFeed = true){
-        m_Feeder.set(.55);
+      pc_Feeder.setP(.00002);
+      pc_Feeder.setFF(.00008373806733);
+      m_Feeder.set(.35);
       }
 
       else {
@@ -417,7 +423,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
 
     if (j_Operator.getRawButton(9)){
-      pc_Tilting.setReference(64.12, ControlType.kPosition);
+      pc_Tilting.setReference(68.5, ControlType.kPosition);
     }
 
     if (j_Operator.getRawButton(8)){
@@ -457,7 +463,7 @@ public class Robot extends TimedRobot {
       //pc_TopShooter.setReference(Kshoot * .85 * Math.pow(dToGoal, .5), ControlType.kVelocity);
       //pc_BotShooter.setReference(-5000, ControlType.kVelocity);
       //pc_TopShooter.setReference(5000, ControlType.kVelocity);
-      if (e_BotShooter.getVelocity() > -5200){
+      if (e_BotShooter.getVelocity() > -5350){
         m_BotShooter.set(-1);
       }
       else {
@@ -465,7 +471,7 @@ public class Robot extends TimedRobot {
         readyToFeed = true;
       }
 
-      if ( e_TopShooter.getVelocity() < 5200){
+      if ( e_TopShooter.getVelocity() < 5350){
         m_TopShooter.set(1);
       }
       else {
