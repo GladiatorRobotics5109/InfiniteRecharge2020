@@ -118,8 +118,6 @@ public class Robot extends TimedRobot {
       public NetworkTable chameleonVision;
       public double chameleon_Yaw;
       public double chameleon_Pitch;
-      public double dToGoal;
-      public double Kshoot;
 
     //sensors
       public DigitalInput interruptSensor = new DigitalInput(1);
@@ -141,7 +139,6 @@ public class Robot extends TimedRobot {
         public int ballCounter = 0;
 
       //shooting booleans
-        public boolean getting_dToGoal = false;
         public boolean readyToFeed = false;
 
   //endregion
@@ -298,6 +295,7 @@ public class Robot extends TimedRobot {
     chameleon_Yaw = visionTable.getEntry("yaw").getDouble(0);
     chameleon_Pitch = visionTable.getEntry("pitch").getDouble(0);
 
+    //if/else series controlling drivetrain motors
     if (j_Right.getRawButton(1)){
       visionTracking();
     }
@@ -306,77 +304,26 @@ public class Robot extends TimedRobot {
       gearSwitching();
     }
 
+    //if/else series controlling intaking and shooting balls
     if (j_Operator.getRawButton(1)){
-      pc_Feeder.setP(.5);
-      pc_Feeder.setFF(0);
-      newBallBoolean = interruptSensor.get();
-      if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
-        Timer.delay(.375);
-        ballCounter++;
-        if(ballCounter < 5) {
-          e_Feeder.setPosition(0);
-          pc_Feeder.setReference(94, ControlType.kPosition);
-        }
-      }
-      else if (newBallBoolean == true){
-        m_Intake.set(0);
-      }
-      else if (ballDebounceBoolean == true){
-        ballDebounceBoolean = false;
-      }
-
-      else if (oldBallBoolean == true && newBallBoolean == false){
-        ballDebounceBoolean = true;
-      }
-
-      else{
-        m_Intake.set(1);
-            }
+      intakingBalls();
+      oldBallBoolean = newBallBoolean;
     }
     else if (j_Operator.getRawButton(2)) {
-      ballCounter = 0;
-      m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
-      m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
-      if (e_BotShooter.getVelocity() > -5350){
-        m_BotShooter.set(-1);
-      }
-      else {
-        m_BotShooter.set(0);
-        readyToFeed = true;
-      }
-
-      if ( e_TopShooter.getVelocity() < 5350){
-        m_TopShooter.set(1);
-      }
-      else {
-        m_TopShooter.set(0);
-      }
-
-      if (readyToFeed = true){
-      m_Feeder.set(.35);
-      }
-
-      else {
-        m_Feeder.stopMotor();
-      }
+      shootingBalls();
     }
-
     else {
       intake();
-      e_Feeder.setPosition(0);
       readyToFeed = false;
       m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
       m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
       m_TopShooter.stopMotor();
       m_BotShooter.stopMotor();
       m_Feeder.stopMotor();
-
     } 
 
-    if (ballCounter > 4){
-      intakeExtended = false;
-    }
-    
+    tiltingControl();
+    ballCounterReset();
 
     //region_SmartDashboard
       //values that are being put into smart dashboard
@@ -395,22 +342,6 @@ public class Robot extends TimedRobot {
       SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
       SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
     //endregion
-    
-    if (j_Operator.getRawButton(9)){
-      pc_Tilting.setReference(68.5, ControlType.kPosition);
-    }
-
-    if (j_Operator.getRawButton(8)){
-      pc_Tilting.setReference(0, ControlType.kPosition);
-    }
-
-    if (j_Operator.getRawButton(4)){
-      ballCounter = 0;
-    }
-    
-    oldBallBoolean = newBallBoolean;
-
-
   }
   @Override
   public void testInit() {
@@ -491,7 +422,6 @@ public class Robot extends TimedRobot {
     
     SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
     SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
-    SmartDashboard.putNumber("target", Kshoot * Math.pow(dToGoal, .5));
     SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
     SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
 
@@ -573,6 +503,81 @@ public class Robot extends TimedRobot {
         m_Right2.stopMotor();
       }
     }
-  //endregion
+
+    public void intakingBalls() {
+      newBallBoolean = interruptSensor.get();
+      if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
+        ballCounter++;
+        if(ballCounter < 5) {
+          e_Feeder.setPosition(0);
+          pc_Feeder.setReference(94, ControlType.kPosition);
+        }
+      }
+      else if (newBallBoolean == true){
+        m_Intake.set(-.1);
+      }
+      else if (ballDebounceBoolean == true){
+        ballDebounceBoolean = false;
+      }
+
+      else if (oldBallBoolean == true && newBallBoolean == false){
+        ballDebounceBoolean = true;
+      }
+
+      else{
+        m_Intake.set(1);
+      }
+
+      if (ballCounter > 4){
+        intakeExtended = false;
+        s_LeftIntake.set(false);
+        s_RightIntake.set(false);
+      }
+    }
+    
+    public void shootingBalls() {
+      ballCounter = 0;
+      m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
+      m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
+      if (e_BotShooter.getVelocity() > -5350){
+        m_BotShooter.set(-1);
+      }
+      else {
+        m_BotShooter.set(0);
+        readyToFeed = true;
+      }
+
+      if ( e_TopShooter.getVelocity() < 5350){
+        m_TopShooter.set(1);
+      }
+      else {
+        m_TopShooter.set(0);
+      }
+
+      if (readyToFeed = true){
+      m_Feeder.set(.35);
+      }
+
+      else {
+        m_Feeder.stopMotor();
+      }
+    }
+  
+    public void tiltingControl() {
+      if (j_Operator.getRawButton(9)){
+        pc_Tilting.setReference(68.5, ControlType.kPosition);
+      }
+  
+      else if (j_Operator.getRawButton(8)){
+        pc_Tilting.setReference(0, ControlType.kPosition);
+      }
+    }
+    
+    public void ballCounterReset() {  
+      if (j_Operator.getRawButton(4)){
+        ballCounter = 0;
+      }
+    }
+    //endregion
 
 }
