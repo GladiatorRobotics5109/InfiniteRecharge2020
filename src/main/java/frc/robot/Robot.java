@@ -176,11 +176,11 @@ public class Robot extends TimedRobot {
       kIz_Right2 = 0;
       kFF_Right2 = .0001746724891;
         
-      kP_Feeder = .00001;
+      kP_Feeder = .5;
       kI_Feeder = 0;
       kD_Feeder = 0;
       kIz_Feeder = 0;
-      kFF_Feeder = .00008373806733;
+      kFF_Feeder = 0;
       
       kP_Tilting = 1;
       kI_Tilting = 0;
@@ -299,29 +299,7 @@ public class Robot extends TimedRobot {
     chameleon_Pitch = visionTable.getEntry("pitch").getDouble(0);
 
     if (j_Right.getRawButton(1)){
-
-      if (chameleon_Yaw < -2) {
-        pc_Right1.setReference(-500, ControlType.kVelocity);
-        pc_Right2.setReference(-500, ControlType.kVelocity);
-        pc_Left1.setReference(-500, ControlType.kVelocity);
-        pc_Left2.setReference(-500, ControlType.kVelocity);
-
-      }
-
-      else if (chameleon_Yaw > 2) {
-        pc_Right1.setReference(500, ControlType.kVelocity);
-        pc_Right2.setReference(500, ControlType.kVelocity);
-        pc_Left1.setReference(500, ControlType.kVelocity);
-        pc_Left2.setReference(500, ControlType.kVelocity);
-      }
-
-      else {
-        m_Left1.stopMotor();
-        m_Left2.stopMotor();
-        m_Right1.stopMotor();
-        m_Right2.stopMotor();
-      }
-
+      visionTracking();
     }
     else {
       joystickControl();
@@ -375,8 +353,6 @@ public class Robot extends TimedRobot {
       }
 
       if (readyToFeed = true){
-      pc_Feeder.setP(.00002);
-      pc_Feeder.setFF(.00008373806733);
       m_Feeder.set(.35);
       }
 
@@ -402,26 +378,24 @@ public class Robot extends TimedRobot {
     }
     
 
-    oldBallBoolean = newBallBoolean;
-
-    //values that are being put into smart dashboard
-    SmartDashboard.putNumber("right joy", j_Right.getY());
-    SmartDashboard.putNumber("left joy", j_Left.getY());
-    SmartDashboard.putBoolean("Do I see ball", interruptSensor.get());
-    SmartDashboard.putNumber("right encoder 1 ", e_Right1.getPosition());
-    SmartDashboard.putNumber("right encoder 2 ", e_Right2.getPosition());
-    SmartDashboard.putNumber("left encoder 1 ", e_Left1.getPosition());
-    SmartDashboard.putNumber("left encoder 2 ", e_Left2.getPosition());
-    SmartDashboard.putNumber("feeder position", e_Feeder.getPosition());
-    SmartDashboard.putNumber("feeder velocity", e_Feeder.getVelocity());
-    SmartDashboard.putNumber("ball counter", ballCounter);
-    SmartDashboard.putNumber("dToGoal", dToGoal);
-    SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
-    SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
-    SmartDashboard.putNumber("target", Kshoot * Math.pow(dToGoal, .5));
-    SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
-    SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
-
+    //region_SmartDashboard
+      //values that are being put into smart dashboard
+      SmartDashboard.putNumber("right joy", j_Right.getY());
+      SmartDashboard.putNumber("left joy", j_Left.getY());
+      SmartDashboard.putBoolean("Do I see ball", interruptSensor.get());
+      SmartDashboard.putNumber("right encoder 1 ", e_Right1.getPosition());
+      SmartDashboard.putNumber("right encoder 2 ", e_Right2.getPosition());
+      SmartDashboard.putNumber("left encoder 1 ", e_Left1.getPosition());
+      SmartDashboard.putNumber("left encoder 2 ", e_Left2.getPosition());
+      SmartDashboard.putNumber("feeder position", e_Feeder.getPosition());
+      SmartDashboard.putNumber("feeder velocity", e_Feeder.getVelocity());
+      SmartDashboard.putNumber("ball counter", ballCounter);
+      SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
+      SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
+      SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
+      SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
+    //endregion
+    
     if (j_Operator.getRawButton(9)){
       pc_Tilting.setReference(68.5, ControlType.kPosition);
     }
@@ -433,36 +407,27 @@ public class Robot extends TimedRobot {
     if (j_Operator.getRawButton(4)){
       ballCounter = 0;
     }
+    
+    oldBallBoolean = newBallBoolean;
 
 
   }
   @Override
   public void testInit() {
 
-    //pc_Tilting.setReference(60, ControlType.kPosition);
   }
 
   @Override
   public void testPeriodic() {
-    // get values from chameleon vision
     chameleonVision = ntwrkInst.getTable("chameleon-vision");
     visionTable = chameleonVision.getSubTable("VisionTable");
     chameleon_Yaw = visionTable.getEntry("yaw").getDouble(0);
     chameleon_Pitch = visionTable.getEntry("pitch").getDouble(0);
-    Kshoot = 475.98*2.9069420;
 
-    //when pressing operator button 7
     if (j_Operator.getRawButton(7)) {
       m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
       m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
-      if (getting_dToGoal){
-        dToGoal = 1.822/(Math.tan(Math.toRadians(30 + chameleon_Pitch)));
-        getting_dToGoal = false;
-      }
-      //set the velocity of the shooter
-      //pc_TopShooter.setReference(Kshoot * .85 * Math.pow(dToGoal, .5), ControlType.kVelocity);
-      //pc_BotShooter.setReference(-5000, ControlType.kVelocity);
-      //pc_TopShooter.setReference(5000, ControlType.kVelocity);
+
       if (e_BotShooter.getVelocity() > -5350){
         m_BotShooter.set(-1);
       }
@@ -485,21 +450,12 @@ public class Robot extends TimedRobot {
       else {
         m_Feeder.stopMotor();
       }
-      /*
-      if (j_Operator.getRawButton(8)){
-        m_Feeder.set(.5);
-      }
-      else{
-        m_Feeder.set(0);
-      }
-      */
 
     }
     else {
       readyToFeed = false;
       m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
       m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
-      getting_dToGoal = true;
       m_TopShooter.stopMotor();
       m_BotShooter.stopMotor();
       m_Feeder.set(j_Operator.getY());
@@ -533,17 +489,11 @@ public class Robot extends TimedRobot {
 
     }
     
-
-    SmartDashboard.putNumber("dToGoal", dToGoal);
     SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
     SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
     SmartDashboard.putNumber("target", Kshoot * Math.pow(dToGoal, .5));
     SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
     SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
-
-    if (j_Operator.getRawButton(9)){
-      pc_Tilting.setReference(65, ControlType.kPosition);
-    }
 
   }
 
@@ -600,6 +550,29 @@ public class Robot extends TimedRobot {
       }
     }    
 
+    public void visionTracking() {
+      if (chameleon_Yaw < -2) {
+        pc_Right1.setReference(-500, ControlType.kVelocity);
+        pc_Right2.setReference(-500, ControlType.kVelocity);
+        pc_Left1.setReference(-500, ControlType.kVelocity);
+        pc_Left2.setReference(-500, ControlType.kVelocity);
+
+      }
+
+      else if (chameleon_Yaw > 2) {
+        pc_Right1.setReference(500, ControlType.kVelocity);
+        pc_Right2.setReference(500, ControlType.kVelocity);
+        pc_Left1.setReference(500, ControlType.kVelocity);
+        pc_Left2.setReference(500, ControlType.kVelocity);
+      }
+
+      else {
+        m_Left1.stopMotor();
+        m_Left2.stopMotor();
+        m_Right1.stopMotor();
+        m_Right2.stopMotor();
+      }
+    }
   //endregion
 
 }
