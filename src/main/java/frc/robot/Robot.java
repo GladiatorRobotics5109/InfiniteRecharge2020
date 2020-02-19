@@ -122,6 +122,8 @@ public class Robot extends TimedRobot {
     //sensors
       public DigitalInput interruptSensor = new DigitalInput(1);
       public DigitalInput lidarSensor = new DigitalInput(0);
+      final double off  = 10; //offset for sensor. test with tape measure
+      public double dist;
 
     //logic variables
 
@@ -148,6 +150,11 @@ public class Robot extends TimedRobot {
     e_Tilting.setPosition(0);
     m_Left.setInverted(true);
     m_Right.setInverted(false);
+    m_LIDAR = new Counter(9); //plug the lidar into PWM 0
+    m_LIDAR.setMaxPeriod(1.00); //set the max period that can be measured
+    m_LIDAR.setSemiPeriodMode(true); //Set the counter to period measurement
+    m_LIDAR.reset();
+
     //region_SettingPidVariables
       kP_Left1 = .0001;
       kI_Left1 = 0;
@@ -575,7 +582,19 @@ public class Robot extends TimedRobot {
       if (j_Operator.getRawButton(4)){
         ballCounter = 0;
       }
+
+    public void lidarDistance() {
+        if(m_LIDAR.get() < 1)
+          dist = 0;
+        else
+          dist = (m_LIDAR.getPeriod()*1000000.0/10.0) - off; //convert to distance. sensor is high 10 us for every centimeter. 
+        SmartDashboard.putNumber("Distance", dist); //put the distance on the dashboard
+    }
     }
     //endregion
 
 }
+
+
+
+
