@@ -276,8 +276,6 @@ public class Robot extends TimedRobot {
  
   @Override
   public void autonomousPeriodic() {
-    //set the tilting motor to 60 degrees
-
 
   }
 
