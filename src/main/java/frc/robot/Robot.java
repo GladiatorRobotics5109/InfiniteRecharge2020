@@ -15,7 +15,8 @@ package frc.robot;
 
   //regular imports
     import edu.wpi.first.wpilibj.*;
-    import edu.wpi.first.networktables.*;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.networktables.*;
     import edu.wpi.first.wpilibj.smartdashboard.*;
     import edu.wpi.first.wpilibj.drive.*;
     //import edu.wpi.first.wpilibj.SpeedControllerGroup.*;
@@ -37,6 +38,7 @@ public class Robot extends TimedRobot {
       public Joystick j_Left = new Joystick(0);
       public Joystick j_Right = new Joystick(1);
       public Joystick j_Operator = new Joystick(2);
+      public XboxController j_XboxController = new XboxController(4);
 
     //neos
       public CANSparkMax m_Left1 = new CANSparkMax(12, MotorType.kBrushless);
@@ -121,7 +123,7 @@ public class Robot extends TimedRobot {
 
     //sensors
       public DigitalInput interruptSensor = new DigitalInput(1);
-      public DigitalInput lidarSensor = new DigitalInput(0);
+      public Counter lidarSensor = new Counter(9);
       final double off  = 10; //offset for sensor. test with tape measure
       public double dist;
 
@@ -150,10 +152,9 @@ public class Robot extends TimedRobot {
     e_Tilting.setPosition(0);
     m_Left.setInverted(true);
     m_Right.setInverted(false);
-    m_LIDAR = new Counter(9); //plug the lidar into PWM 0
-    m_LIDAR.setMaxPeriod(1.00); //set the max period that can be measured
-    m_LIDAR.setSemiPeriodMode(true); //Set the counter to period measurement
-    m_LIDAR.reset();
+    lidarSensor.setMaxPeriod(1.00); //set the max period that can be measured
+    lidarSensor.setSemiPeriodMode(true); //Set the counter to period measurement
+    lidarSensor.reset();
 
     //region_SettingPidVariables
       kP_Left1 = .0001;
@@ -243,7 +244,7 @@ public class Robot extends TimedRobot {
       pc_Feeder.setD(kD_Feeder);
       pc_Feeder.setIZone(kIz_Feeder);
       pc_Feeder.setFF(kFF_Feeder);
-      pc_Feeder.setOutputRange(-1, 1);
+      pc_Feeder.setOutputRange(-.69, .69);
 
       pc_Tilting.setP(kP_Tilting);
       pc_Tilting.setI(kI_Tilting);
@@ -297,8 +298,8 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     chameleonVision = ntwrkInst.getTable("chameleon-vision");
     visionTable = chameleonVision.getSubTable("VisionTable");
-    chameleon_Yaw = visionTable.getEntry("yaw").getDouble(0);
-    chameleon_Pitch = visionTable.getEntry("pitch").getDouble(0);
+    chameleon_Yaw = visionTable.getEntry("targetYaw").getDouble(0);
+    chameleon_Pitch = visionTable.getEntry("targetPitch").getDouble(0);
 
     //if/else series controlling drivetrain motors
     if (j_Right.getRawButton(1)){
@@ -329,6 +330,7 @@ public class Robot extends TimedRobot {
 
     tiltingControl();
     ballCounterReset();
+    lidarDistance();
 
     //region_SmartDashboard
       //values that are being put into smart dashboard
@@ -346,6 +348,7 @@ public class Robot extends TimedRobot {
       SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
       SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
       SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
+      SmartDashboard.putNumber("Distance", dist);
     //endregion
   }
   @Override
@@ -440,6 +443,7 @@ public class Robot extends TimedRobot {
       }
       else{
         m_DriveTrain.tankDrive(j_Left.getY(), -j_Right.getY());
+        m_DriveTrain.tankDrive(j_XboxController.getY();
       }
     }
 
@@ -460,12 +464,11 @@ public class Robot extends TimedRobot {
     }
 
     public void intake(){ //method for spinning our intake and for ejecting it
-      if(j_Left.getRawButton(1)){
-        m_Intake.set(1);
+      if(j_Operator.getRawButton(1)){
         intakeExtended = true;
       }
       else{
-        if(j_Left.getRawButton(6)){
+        if(j_Operator.getRawButton(6)){
           m_Intake.set(-1);
         }
         else{
@@ -513,13 +516,17 @@ public class Robot extends TimedRobot {
       newBallBoolean = interruptSensor.get();
       if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
         ballCounter++;
-        if(ballCounter < 5) {
+        if(ballCounter < 3) {
           e_Feeder.setPosition(0);
-          pc_Feeder.setReference(94, ControlType.kPosition);
+          pc_Feeder.setReference(120, ControlType.kPosition);
+        }
+        else if (ballCounter >= 3 && ballCounter < 5){
+          e_Feeder.setPosition(0);
+          pc_Feeder.setReference(120, ControlType.kPosition);
         }
       }
       else if (newBallBoolean == true){
-        m_Intake.set(-.1);
+        m_Intake.set(.25);
       }
       else if (ballDebounceBoolean == true){
         ballDebounceBoolean = false;
@@ -533,10 +540,16 @@ public class Robot extends TimedRobot {
         m_Intake.set(1);
       }
 
-      if (ballCounter > 4){
+      if (ballCounter > 3){
+        Timer.delay(.5);
         intakeExtended = false;
         s_LeftIntake.set(false);
         s_RightIntake.set(false);
+      }
+      else {
+        intakeExtended = true;
+        s_LeftIntake.set(true);
+        s_RightIntake.set(true);
       }
     }
     
@@ -553,14 +566,14 @@ public class Robot extends TimedRobot {
       }
 
       if ( e_TopShooter.getVelocity() < 5350){
-        m_TopShooter.set(1);
+        m_TopShooter.set(.69);
       }
       else {
         m_TopShooter.set(0);
       }
 
       if (readyToFeed = true){
-      m_Feeder.set(.35);
+      m_Feeder.set(1);
       }
 
       else {
@@ -570,7 +583,7 @@ public class Robot extends TimedRobot {
   
     public void tiltingControl() {
       if (j_Operator.getRawButton(9)){
-        pc_Tilting.setReference(68.5, ControlType.kPosition);
+        pc_Tilting.setReference(67, ControlType.kPosition);
       }
   
       else if (j_Operator.getRawButton(8)){
@@ -582,14 +595,15 @@ public class Robot extends TimedRobot {
       if (j_Operator.getRawButton(4)){
         ballCounter = 0;
       }
-
-    public void lidarDistance() {
-        if(m_LIDAR.get() < 1)
-          dist = 0;
-        else
-          dist = (m_LIDAR.getPeriod()*1000000.0/10.0) - off; //convert to distance. sensor is high 10 us for every centimeter. 
-        SmartDashboard.putNumber("Distance", dist); //put the distance on the dashboard
     }
+    
+    public void lidarDistance() {
+      if(lidarSensor.get() < 1){
+        dist = 0;
+      }
+      else{
+        dist = (lidarSensor.getPeriod()*1000000.0/10.0) - off; //convert to distance. sensor is high 10 us for every centimeter. 
+      }
     }
     //endregion
 
