@@ -15,7 +15,8 @@ package frc.robot;
 
   //regular imports
     import edu.wpi.first.wpilibj.*;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
+//import edu.wpi.first.wpilibj.GenericHID.Hand;
+//import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.networktables.*;
     import edu.wpi.first.wpilibj.smartdashboard.*;
     import edu.wpi.first.wpilibj.drive.*;
@@ -38,7 +39,7 @@ public class Robot extends TimedRobot {
       public Joystick j_Left = new Joystick(0);
       public Joystick j_Right = new Joystick(1);
       public Joystick j_Operator = new Joystick(2);
-      public XboxController j_XboxController = new XboxController(4);
+     // public XboxController j_XboxController = new XboxController(4);
 
     //neos
       public CANSparkMax m_Left1 = new CANSparkMax(12, MotorType.kBrushless);
@@ -130,7 +131,7 @@ public class Robot extends TimedRobot {
     //logic variables
 
       //gear switching
-        public boolean lowGear;
+        public boolean lowGear=true;
         public boolean switchGears;
       
       //intake booleans
@@ -284,7 +285,8 @@ public class Robot extends TimedRobot {
  
   @Override
   public void autonomousPeriodic() {
-
+    m_Feeder.set(.5);
+    SmartDashboard.putNumber("hi", j_Right.getY());
   }
 
 
@@ -302,7 +304,7 @@ public class Robot extends TimedRobot {
     chameleon_Pitch = visionTable.getEntry("targetPitch").getDouble(0);
 
     //if/else series controlling drivetrain motors
-    if (j_Right.getRawButton(1)){
+    if (j_Right.getTrigger()){
       visionTracking();
     }
     else {
@@ -349,6 +351,14 @@ public class Robot extends TimedRobot {
       SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
       SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
       SmartDashboard.putNumber("Distance", dist);
+      SmartDashboard.putBoolean("Lowgear", lowGear);
+      if (chameleon_Yaw > -2 && chameleon_Yaw < 2){
+        SmartDashboard.putBoolean("Aligned", true);
+      }
+      else {
+        SmartDashboard.putBoolean("Aligned", false);
+      }
+
     //endregion
   }
   @Override
@@ -439,11 +449,12 @@ public class Robot extends TimedRobot {
     
     public void joystickControl(){ //method for implementing our lowgear/highgear modes into our driver controls
       if(lowGear){
-        m_DriveTrain.tankDrive(j_Left.getY()/2, -j_Right.getY()/2);
+        m_DriveTrain.tankDrive(j_Left.getY() * .7, -j_Right.getY() * .7);
+        //m_DriveTrain.tankDrive(j_XboxController.getY(Hand.kLeft)*.75, -j_XboxController.getY(Hand.kRight)*.75);
       }
       else{
         m_DriveTrain.tankDrive(j_Left.getY(), -j_Right.getY());
-        m_DriveTrain.tankDrive(j_XboxController.getY();
+        //m_DriveTrain.tankDrive(j_XboxController.getY(Hand.kLeft), -j_XboxController.getY(Hand.kRight));
       }
     }
 
@@ -458,7 +469,7 @@ public class Robot extends TimedRobot {
           switchGears = false;
         }
       }
-      else if(!j_Right.getRawButton(2)){
+      else if(j_Right.getRawButton(2)){
         switchGears = true;
       }
     }
@@ -515,6 +526,7 @@ public class Robot extends TimedRobot {
     public void intakingBalls() {
       newBallBoolean = interruptSensor.get();
       if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
+        //j_XboxController.setRumble(RumbleType.kLeftRumble, .5);
         ballCounter++;
         if(ballCounter < 3) {
           e_Feeder.setPosition(0);
@@ -538,6 +550,7 @@ public class Robot extends TimedRobot {
 
       else{
         m_Intake.set(1);
+        //j_XboxController.setRumble(RumbleType.kLeftRumble, 0);
       }
 
       if (ballCounter > 3){
