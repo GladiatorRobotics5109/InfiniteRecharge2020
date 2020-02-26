@@ -15,12 +15,12 @@ package frc.robot;
 
   //regular imports
     import edu.wpi.first.wpilibj.*;
-//import edu.wpi.first.wpilibj.GenericHID.Hand;
-//import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.networktables.*;
+    import edu.wpi.first.wpilibj.GenericHID.Hand;
+    import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+    import edu.wpi.first.networktables.*;
     import edu.wpi.first.wpilibj.smartdashboard.*;
     import edu.wpi.first.wpilibj.drive.*;
-    //import edu.wpi.first.wpilibj.SpeedControllerGroup.*;
+    import edu.wpi.first.wpilibj.SpeedControllerGroup.*;
 
   //spark max/neos imports
     import com.revrobotics.*;
@@ -39,7 +39,7 @@ public class Robot extends TimedRobot {
       public Joystick j_Left = new Joystick(0);
       public Joystick j_Right = new Joystick(1);
       public Joystick j_Operator = new Joystick(2);
-     // public XboxController j_XboxController = new XboxController(4);
+      public XboxController j_XboxController = new XboxController(4);
 
     //neos
       public CANSparkMax m_Left1 = new CANSparkMax(12, MotorType.kBrushless);
@@ -279,7 +279,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-
+      
   }
 
  
@@ -459,7 +459,7 @@ public class Robot extends TimedRobot {
     }
 
     public void gearSwitching(){ //method for switching our bot to lowgear(less sensitive) or highgear(speedyboi)
-      if(j_Right.getRawButton(2) && switchGears){
+      if(j_Right.getRawButton(2) && switchGears || j_XboxController.getTriggerAxis(Hand.kLeft) >.5 && switchGears ){
         if(lowGear){
           lowGear = false;
           switchGears = false;
@@ -469,7 +469,7 @@ public class Robot extends TimedRobot {
           switchGears = false;
         }
       }
-      else if(j_Right.getRawButton(2)){
+      else if(j_Right.getRawButton(2) || j_XboxController.getTriggerAxis(Hand.kLeft) > .5){
         switchGears = true;
       }
     }
@@ -479,7 +479,7 @@ public class Robot extends TimedRobot {
         intakeExtended = true;
       }
       else{
-        if(j_Operator.getRawButton(6)){
+        if(j_Operator.getRawButton(5)){
           m_Intake.set(-1);
         }
         else{
@@ -489,7 +489,7 @@ public class Robot extends TimedRobot {
       if(intakeExtended){
         s_LeftIntake.set(true);
         s_RightIntake.set(true);
-        if(j_Left.getRawButton(2)){
+        if(j_Operator.getRawButton(3)){
           intakeExtended = false;
         }
       }
