@@ -105,11 +105,12 @@ public class Robot extends TimedRobot {
       public double kP_TopShooter, kI_TopShooter, kD_TopShooter, kIz_TopShooter, kFF_TopShooter;
       public double kP_BotShooter, kI_BotShooter, kD_BotShooter, kIz_BotShooter, kFF_BotShooter;
       public double kP_ControlPanel, kI_ControlPanel, kD_ControlPanel, kIz_ControlPanel, kFF_ControlPanel;
+      public double kP_Climb, kI_Climb, kD_Climb, kIz_Climb, kFF_Climb;
 
     //solenoid variables
       public Solenoid s_LeftIntake = new Solenoid(7);
       public Solenoid s_RightIntake = new Solenoid(5);
-      public Solenoid s_ControlPanel = new Solenoid(6);
+      public Solenoid s_ControlPanel = new Solenoid(4);
 
     //navx variables
       public AHRS navX = new AHRS(SPI.Port.kMXP);
@@ -121,6 +122,11 @@ public class Robot extends TimedRobot {
       public NetworkTable chameleonVision;
       public double chameleon_Yaw;
       public double chameleon_Pitch;
+      public NetworkTable controlPanelVision;
+      public double areaRed;
+      public double areaGreen;
+      public double areaBlue;
+      public double areaYel;
 
     //sensors
       public DigitalInput interruptSensor = new DigitalInput(1);
@@ -146,6 +152,29 @@ public class Robot extends TimedRobot {
       //shooting booleans
         public boolean readyToFeed = false;
 
+      //controlpanel variables
+        public int targetColor;
+        public int currentColor;
+        public int revolutionCount = 0;
+        public boolean sawColor = true; 
+        public double controlPanelConstant = 6.9;
+        public boolean controlPanelExtended = false;
+        public boolean extendControlPanel;
+
+      //gamedata
+        public String gameData;
+
+      //climb variables
+        public boolean climbMode = false;
+        public boolean extendClimbMode = false;
+        public boolean switchClimbMode;
+        public boolean extendClimber;
+
+      //variables for auto phase
+        public int autoCase;
+        public int autoCounter = 0;
+
+
   //endregion
  
   @Override
@@ -153,6 +182,7 @@ public class Robot extends TimedRobot {
     e_Tilting.setPosition(0);
     m_Left.setInverted(true);
     m_Right.setInverted(false);
+    m_Feeder.setIdleMode(CANSparkMax.IdleMode.kCoast);
     lidarSensor.setMaxPeriod(1.00); //set the max period that can be measured
     lidarSensor.setSemiPeriodMode(true); //Set the counter to period measurement
     lidarSensor.reset();
@@ -211,6 +241,12 @@ public class Robot extends TimedRobot {
       kD_ControlPanel = 0;
       kIz_ControlPanel = 0;
       kFF_ControlPanel = 0;
+
+      kP_Climb = 1;
+      kI_Climb = 0;
+      kD_Climb = 0;
+      kIz_Climb = 0;
+      kFF_Climb = 0;
       
 
     //endregion
@@ -272,36 +308,76 @@ public class Robot extends TimedRobot {
       pc_ControlPanel.setIZone(kIz_ControlPanel);
       pc_ControlPanel.setFF(kFF_ControlPanel);
 
+      pc_Climb.setP(kP_Climb);
+      pc_Climb.setI(kIz_Climb);
+      pc_Climb.setD(kD_Climb);
+      pc_Climb.setIZone(kIz_Climb);
+      pc_Climb.setFF(kFF_Climb);
+      pc_Climb.setOutputRange(-.30, .30);
+
     //endregion
 
   }
 
-
   @Override
   public void autonomousInit() {
-      
+    m_Feeder.setIdleMode(CANSparkMax.IdleMode.kBrake);
   }
 
- 
   @Override
   public void autonomousPeriodic() {
-    m_Feeder.set(.5);
-    SmartDashboard.putNumber("hi", j_Right.getY());
-  }
+    SmartDashboard.putNumber("AutoCase", 1);
+    autoCase = (int)SmartDashboard.getNumber("AutoCase", 1);
 
+    switch (autoCase){
+      case 1:
+
+
+        if(autoCounter == 0){
+          m_BotShooter.stopMotor();
+          m_BotShooter.stopMotor();
+          rightTurn(90);
+        }
+        else if(autoCounter == 1){
+          driveStraight(5.333333333333333333333, 500);
+        }
+        else if(autoCounter == 2){
+          rightTurn(180);
+        }
+        else if(autoCounter == 3){
+          driveStraight(16.25, 500);
+          s_LeftIntake.set(true);
+          s_RightIntake.set(true);
+          intakingBalls();
+        }
+        else if(autoCounter == 4){
+          rightTurn(315);
+        }
+        else if(autoCounter == 5){
+          shootingBalls();
+        }
+        
+        break;
+      case 2:
+        break;
+      case 3:
+        break;
+      default:
+
+
+    }
+
+    SmartDashboard.putNumber("autocounter", autoCounter);
+  }
 
   @Override
   public void teleopInit() {
-    
+    m_Feeder.setIdleMode(CANSparkMax.IdleMode.kBrake);
   }
-
 
   @Override
   public void teleopPeriodic() {
-    chameleonVision = ntwrkInst.getTable("chameleon-vision");
-    visionTable = chameleonVision.getSubTable("VisionTable");
-    chameleon_Yaw = visionTable.getEntry("targetYaw").getDouble(0);
-    chameleon_Pitch = visionTable.getEntry("targetPitch").getDouble(0);
+    gettingVision();
 
     //if/else series controlling drivetrain motors
     if (j_Right.getTrigger()){
@@ -327,12 +403,24 @@ public class Robot extends TimedRobot {
       m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
       m_TopShooter.stopMotor();
       m_BotShooter.stopMotor();
-      m_Feeder.stopMotor();
     } 
 
+    if(j_Operator.getRawButton(7)){
+      if(targetColor == 0){
+        controlPanelRevolution();
+      }
+      else{
+        controlPanelColorSpin();
+      }
+    }
+
+    climb();
+    gameData();
+    controlPanelExtend();
     tiltingControl();
     ballCounterReset();
     lidarDistance();
+    colorFinder();
 
     //region_SmartDashboard
       //values that are being put into smart dashboard
@@ -352,6 +440,9 @@ public class Robot extends TimedRobot {
       SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
       SmartDashboard.putNumber("Distance", dist);
       SmartDashboard.putBoolean("Lowgear", lowGear);
+      SmartDashboard.putBoolean("clmib mode", climbMode);
+      SmartDashboard.putBoolean("extend clmib mode", extendClimbMode);
+      SmartDashboard.putBoolean("control panel extended", controlPanelExtended);
       if (chameleon_Yaw > -2 && chameleon_Yaw < 2){
         SmartDashboard.putBoolean("Aligned", true);
       }
@@ -361,92 +452,54 @@ public class Robot extends TimedRobot {
 
     //endregion
   }
+ 
   @Override
   public void testInit() {
-
+    autoCounter = 0;
+    navX.zeroYaw();
+    e_Right1.setPosition(0);
+    e_Right2.setPosition(0);
+    e_Left1.setPosition(0);
+    e_Left2.setPosition(0);
+    e_Climb.setPosition(0);
   }
 
   @Override
   public void testPeriodic() {
-    chameleonVision = ntwrkInst.getTable("chameleon-vision");
-    visionTable = chameleonVision.getSubTable("VisionTable");
-    chameleon_Yaw = visionTable.getEntry("yaw").getDouble(0);
-    chameleon_Pitch = visionTable.getEntry("pitch").getDouble(0);
-
-    if (j_Operator.getRawButton(7)) {
-      m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
-      m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
-
-      if (e_BotShooter.getVelocity() > -5350){
-        m_BotShooter.set(-1);
-      }
-      else {
-        m_BotShooter.set(0);
-        readyToFeed = true;
-      }
-
-      if ( e_TopShooter.getVelocity() < 5350){
-        m_TopShooter.set(1);
-      }
-      else {
-        m_TopShooter.set(0);
-      }
-
-      if (readyToFeed = true){
-        m_Feeder.set(.61);
-      }
-
-      else {
-        m_Feeder.stopMotor();
-      }
-
-    }
-    else {
-      readyToFeed = false;
-      m_BotShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
-      m_TopShooter.setIdleMode(CANSparkMax.IdleMode.kBrake);
-      m_TopShooter.stopMotor();
-      m_BotShooter.stopMotor();
-      m_Feeder.set(j_Operator.getY());
-      intake();
-
-    }
-
-    if (j_Operator.getRawButton(1)){
-
-      if (chameleon_Yaw < -2) {
-        pc_Right1.setReference(-500, ControlType.kVelocity);
-        pc_Right2.setReference(-500, ControlType.kVelocity);
-        pc_Left1.setReference(-500, ControlType.kVelocity);
-        pc_Left2.setReference(-500, ControlType.kVelocity);
-
-      }
-
-      else if (chameleon_Yaw > 2) {
-        pc_Right1.setReference(500, ControlType.kVelocity);
-        pc_Right2.setReference(500, ControlType.kVelocity);
-        pc_Left1.setReference(500, ControlType.kVelocity);
-        pc_Left2.setReference(500, ControlType.kVelocity);
-      }
-
-      else {
-        m_Left1.stopMotor();
-        m_Left2.stopMotor();
-        m_Right1.stopMotor();
-        m_Right2.stopMotor();
-      }
-
+    
+    if (autoCounter == 0){
+      rightTurn(90);
+      //driveStraight(5, 2000);
     }
     
-    SmartDashboard.putNumber("top motor velocity", e_TopShooter.getVelocity());
-    SmartDashboard.putNumber("bot motor velocity", e_BotShooter.getVelocity());
-    SmartDashboard.putNumber("tilting encoder", e_Tilting.getPosition());
-    SmartDashboard.putNumber("Chameleon Yaw", chameleon_Yaw);
+    climb();
+    SmartDashboard.putNumber("climb encoder counts", e_Climb.getPosition());
+    SmartDashboard.putNumber("right1", e_Right1.getPosition());
+    SmartDashboard.putNumber("right2", e_Right2.getPosition());
+    SmartDashboard.putNumber("left1", e_Left1.getPosition());
+    SmartDashboard.putNumber("left2", e_Left2.getPosition());
+    SmartDashboard.putNumber("navx", navX.getYaw() % 360);
+    SmartDashboard.putBoolean("climbextender", extendClimber);
+    SmartDashboard.putBoolean("switch climb mode ", switchClimbMode);
+    SmartDashboard.putBoolean("clmib mode", climbMode);
+    SmartDashboard.putBoolean("extend clmib mode", extendClimbMode);
+
+
 
   }
 
   //region_Methods
-    
+    public void gettingVision(){
+      chameleonVision = ntwrkInst.getTable("chameleon-vision");
+      visionTable = chameleonVision.getSubTable("VisionTable");
+      chameleon_Yaw = visionTable.getEntry("targetYaw").getDouble(0);
+      controlPanelVision = ntwrkInst.getTable("Vision Table");
+      areaRed = controlPanelVision.getEntry("AreaRed").getDouble(0);
+      areaGreen = controlPanelVision.getEntry("AreaGreen").getDouble(0);
+      areaBlue = controlPanelVision.getEntry("AreaBlue").getDouble(0);
+      areaYel = controlPanelVision.getEntry("AreaYellow").getDouble(0);
+    }  
+
     public void joystickControl(){ //method for implementing our lowgear/highgear modes into our driver controls
       if(lowGear){
         m_DriveTrain.tankDrive(j_Left.getY() * .7, -j_Right.getY() * .7);
@@ -480,10 +533,12 @@ public class Robot extends TimedRobot {
       }
       else{
         if(j_Operator.getRawButton(5)){
+          m_Feeder.set(j_Operator.getY());
           m_Intake.set(-1);
         }
         else{
           m_Intake.set(0);
+          m_Feeder.stopMotor();
         }
       }
       if(intakeExtended){
@@ -528,13 +583,13 @@ public class Robot extends TimedRobot {
       if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
         //j_XboxController.setRumble(RumbleType.kLeftRumble, .5);
         ballCounter++;
-        if(ballCounter < 3) {
+        if(ballCounter <= 3) {
           e_Feeder.setPosition(0);
           pc_Feeder.setReference(120, ControlType.kPosition);
         }
-        else if (ballCounter >= 3 && ballCounter < 5){
+        else if (ballCounter > 3 && ballCounter < 5){
           e_Feeder.setPosition(0);
-          pc_Feeder.setReference(120, ControlType.kPosition);
+          pc_Feeder.setReference(0, ControlType.kPosition);
         }
       }
       else if (newBallBoolean == true){
@@ -577,9 +632,8 @@ public class Robot extends TimedRobot {
         m_BotShooter.set(0);
         readyToFeed = true;
       }
-
       if ( e_TopShooter.getVelocity() < 5350){
-        m_TopShooter.set(.69);
+        m_TopShooter.set(1);
       }
       else {
         m_TopShooter.set(0);
@@ -604,7 +658,7 @@ public class Robot extends TimedRobot {
       }
     }
     
-    public void ballCounterReset() {  
+    public void ballCounterReset() { 
       if (j_Operator.getRawButton(4)){
         ballCounter = 0;
       }
@@ -618,9 +672,215 @@ public class Robot extends TimedRobot {
         dist = (lidarSensor.getPeriod()*1000000.0/10.0) - off; //convert to distance. sensor is high 10 us for every centimeter. 
       }
     }
+
+    public void colorFinder() {
+      if (areaBlue > areaGreen && areaBlue > areaRed && areaBlue > areaYel){
+        currentColor = 1;
+        }
+        else if (areaGreen > areaBlue && areaGreen > areaRed && areaGreen > areaYel){
+       currentColor = 2;
+        }
+        else if (areaRed > areaGreen && areaRed > areaBlue && areaRed > areaYel){
+       currentColor = 3;
+        }
+        else if (areaYel > areaGreen && areaYel > areaRed && areaYel > areaBlue){
+       currentColor = 4;
+        }
+        else{
+       currentColor = 0;
+        }
+    }
+
+    public void controlPanelRevolution() {
+      if (sawColor == true && currentColor == targetColor){
+        revolutionCount++;
+        sawColor = false;
+      }
+      
+      if (currentColor != targetColor){
+        sawColor = true;
+      }
+        
+      if (revolutionCount < 6){
+        m_ControlPanel.set(-.69);
+      }
+      else if (revolutionCount > 8){
+        m_ControlPanel.stopMotor();
+      }
+      else{
+        m_ControlPanel.stopMotor();
+      }
+
+    }
+
+    public void controlPanelColorSpin() {
+      if (currentColor == targetColor){
+        m_ControlPanel.stopMotor();
+      }
+      else if (targetColor == 4){
+        m_ControlPanel.set(-.30);
+      }
+      else{
+        m_ControlPanel.set(-Math.abs(currentColor - targetColor) / controlPanelConstant);
+      }
+    }
+
+    public void controlPanelExtend(){ 
+      if(j_Operator.getRawButton(6) && extendControlPanel){
+        if(controlPanelExtended){
+          controlPanelExtended = false;
+          extendControlPanel = false;
+        }
+        else{
+          controlPanelExtended = true;
+          extendControlPanel = false;
+        }
+      }
+      else{
+        extendControlPanel = true;
+      }
+    }
+
+    public void gameData(){
+      gameData = DriverStation.getInstance().getGameSpecificMessage();
+      if(gameData.length() > 0){
+        switch (gameData.charAt(0))
+        {
+          case 'B' :
+            targetColor = 1;
+            break;
+          case 'G' :
+            targetColor = 2;
+            break;
+          case 'R' :
+            targetColor = 3;
+            break;
+          case 'Y' :
+            targetColor = 4;
+            break;
+          default :
+            break;
+        }
+      } 
+      else {
+        targetColor = 0;
+      }
+    }
+
+    public void climb(){
+      if(j_Operator.getRawButton(10) && extendClimber){
+        if(extendClimbMode){
+          extendClimber = false;
+          extendClimbMode = false;
+        }
+        else{
+          extendClimber = false;
+          extendClimbMode = true;
+        }
+      }
+      else{
+        extendClimber = true;
+      }
+
+      if(j_Operator.getRawButton(11) && switchClimbMode){
+        if(climbMode){
+          switchClimbMode = false;
+          climbMode = false;
+        }
+        else{
+          switchClimbMode = false;
+          climbMode = true;
+        }
+      }
+      else{
+        switchClimbMode = true;
+      }
+
+      if (climbMode == false) {
+        m_LeftWinch.stopMotor();
+        m_RightWinch.stopMotor();
+      }
+      else {
+        m_LeftWinch.set(-j_Operator.getY());
+        m_RightWinch.set(j_Operator.getY());
+      }
+
+      if (extendClimbMode == false) {
+        m_Climb.stopMotor();
+      }
+      else {
+        m_Climb.set(j_Operator.getY());
+      }
+
+    }
+
+    public void driveStraight(double feet, double speed){
+      double encoderFeet = feet * 6.095233693;
+      if(e_Left1.getPosition() < encoderFeet || e_Left2.getPosition() < encoderFeet || e_Right1.getPosition() > -encoderFeet || e_Right2.getPosition() > -encoderFeet){
+        pc_Left1.setReference(speed, ControlType.kVelocity);
+        pc_Left2.setReference(speed, ControlType.kVelocity);
+        pc_Right1.setReference(-speed, ControlType.kVelocity);
+        pc_Right2.setReference(-speed, ControlType.kVelocity);
+      }
+      else{
+        m_DriveTrain.stopMotor();
+        e_Right1.setPosition(0);
+        e_Right2.setPosition(0);
+        e_Left1.setPosition(0);
+        e_Left2.setPosition(0);
+        autoCounter ++;
+      }
+    }
+
+    public void rightTurn(double targetAngle){
+      double actualYaw = navX.getYaw() % 360;
+
+      if (Math.abs(actualYaw - targetAngle) < 8){
+        pc_Left1.setReference(0, ControlType.kVelocity);
+        pc_Left2.setReference(0, ControlType.kVelocity);
+        pc_Right1.setReference(0, ControlType.kVelocity);
+        pc_Right2.setReference(0, ControlType.kVelocity);
+        e_Right1.setPosition(0);
+        e_Right2.setPosition(0);
+        e_Left1.setPosition(0);
+        e_Left2.setPosition(0);
+        autoCounter ++;
+      }
+      else{
+        m_Left.set(.4);
+        m_Right.set(.4);
+      }
+
+    }
+
+    public void leftTurn(double targetAngle){
+      double actualYaw = navX.getYaw() % 360;
+      if (Math.abs(actualYaw - targetAngle) < 8){
+        pc_Left1.setReference(0, ControlType.kVelocity);
+        pc_Left2.setReference(0, ControlType.kVelocity);
+        pc_Right1.setReference(0, ControlType.kVelocity);
+        pc_Right2.setReference(0, ControlType.kVelocity);
+        e_Right1.setPosition(0);
+        e_Right2.setPosition(0);
+        e_Left1.setPosition(0);
+        e_Left2.setPosition(0);
+        autoCounter ++;
+      }
+      else{
+        pc_Left1.setReference(-1000, ControlType.kVelocity);
+        pc_Left2.setReference(-1000, ControlType.kVelocity);
+        pc_Right1.setReference(-1000, ControlType.kVelocity);
+        pc_Right2.setReference(-1000, ControlType.kVelocity);
+      }
+    }
+    
     //endregion
 
 }
+
+  
+
+
 
 
 
