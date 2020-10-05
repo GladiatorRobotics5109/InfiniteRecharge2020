@@ -332,7 +332,7 @@ public class Robot extends TimedRobot {
     switch (autoCase){
       case 1:
 
-
+        //I Hate Physics
         if(autoCounter == 0){
           m_BotShooter.stopMotor();
           m_BotShooter.stopMotor();
