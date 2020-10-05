@@ -97,7 +97,7 @@ public class Robot extends TimedRobot {
 
     //tuning variables
       public double kP_Left1, kI_Left1, kD_Left1, kIz_Left1, kFF_Left1;
-      public double kP_Left2, kI_Left2, kD_Left2, kIz_Left2, kFF_Left2;
+      public double kP_Left2, kI_Left2, kD_Left2, kIz_Left2, kFF_Left2; //gay
       public double kP_Right1, kI_Right1, kD_Right1, kIz_Right1, kFF_Right1;
       public double kP_Right2, kI_Right2, kD_Right2, kIz_Right2, kFF_Right2;
       public double kP_Feeder, kI_Feeder, kD_Feeder, kIz_Feeder, kFF_Feeder;
