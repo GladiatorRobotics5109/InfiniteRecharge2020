@@ -34,7 +34,7 @@ package frc.robot;
 public class Robot extends TimedRobot {
 
   //region_Variables
-
+    //commented 37 wowowoowowoww yifan is chungo
     //joysticks
       public Joystick j_Left = new Joystick(0);
       public Joystick j_Right = new Joystick(1);
