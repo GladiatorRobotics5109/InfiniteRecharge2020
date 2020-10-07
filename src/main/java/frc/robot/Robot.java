@@ -186,7 +186,7 @@ public class Robot extends TimedRobot {
     lidarSensor.setMaxPeriod(1.00); //set the max period that can be measured
     lidarSensor.setSemiPeriodMode(true); //Set the counter to period measurement
     lidarSensor.reset();
-
+    //kyleisnewzibran
     //region_SettingPidVariables
       kP_Left1 = .0001;
       kI_Left1 = 0;
