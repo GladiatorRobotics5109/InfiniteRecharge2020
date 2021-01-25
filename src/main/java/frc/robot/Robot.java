@@ -10,6 +10,9 @@
 //RANDOM COMMENT
 
 //endregion
+//jacob commented here
+
+//comment
 
 package frc.robot;
 
@@ -36,7 +39,7 @@ package frc.robot;
 public class Robot extends TimedRobot {
 
   //region_Variables
-
+    //commented 37 wowowoowowoww yifan is chungo
     //joysticks
       public Joystick j_Left = new Joystick(0);
       public Joystick j_Right = new Joystick(1);
@@ -188,7 +191,7 @@ public class Robot extends TimedRobot {
     lidarSensor.setMaxPeriod(1.00); //set the max period that can be measured
     lidarSensor.setSemiPeriodMode(true); //Set the counter to period measurement
     lidarSensor.reset();
-
+    //kyleisnewzibran
     //region_SettingPidVariables
       kP_Left1 = .0001;
       kI_Left1 = 0;
@@ -321,10 +324,114 @@ public class Robot extends TimedRobot {
 
   }
 
+  public void smoothTurnLeft(double robotSpeed, double targetDistance, double targetAngleDegrees){
+    //Calculates the amount of rpms it will take to get to a certain angle based on rotational speed
+    //double robotVelocity = 16000;
+    double wheelCircumference = 0.5 * Math.PI;
+    double singleRevolution = (23/12)*Math.PI/wheelCircumference;
+    //converts target distance(feet) to encoder counts
+    double encoderRotations = targetDistance/wheelCircumference;
+    //final calculation
+    double userRevolution = (singleRevolution/360)*targetAngleDegrees;
+    double turningSpeed = userRevolution/encoderRotations; 
+    double rightSpeed = robotSpeed;
+    double leftSpeed = robotSpeed-turningSpeed;
+    //moves robot to a point, while achieving the target distance
+    if (e_Right1.getPosition() <= encoderRotations && e_Right2.getPosition() <= encoderRotations && e_Left1.getPosition() <= encoderRotations && e_Left2.getPosition() <= encoderRotations){
+      pc_Left1.setReference(rightSpeed, ControlType.kVelocity);
+      pc_Left2.setReference(rightSpeed, ControlType.kVelocity);
+      pc_Right1.setReference(-leftSpeed, ControlType.kVelocity);
+      pc_Right2.setReference(-leftSpeed, ControlType.kVelocity);
+    //calculates the remainder encoder counts after the target distance is achieved and drives straight until it is achieved
+    /*double newTargetRevolutions = encoderRotations - userRevolution;
+    driveStraight(newTargetRevolutions, 0.1);*/
+    }
+    }
+
   @Override
   public void autonomousInit() {
     m_Feeder.setIdleMode(CANSparkMax.IdleMode.kBrake);
   }
+
+  @Override
+  public void path2Autonomous() {
+    SmartDashboard.putNumber("AutoCase", 1);
+    autoCase = (int)SmartDashboard.getNumber("AutoCase", 1);
+
+    switch (autoCase){
+      case 1:
+        if(autoCounter == 0){
+          driveStraight(1.5, 500);
+        }
+        else if(autoCounter == 1){
+          leftTurn(45.0);
+        }
+        else if(autoCounter == 2){
+          rightTurn(30.0);
+        }
+        else if(autoCounter == 3){
+          driveStraight(10.0, 500);
+        }
+        else if(autoCounter == 4){
+          rightTurn(45.0);
+        }
+        else if(autoCounter == 5){
+          driveStraight(5.0, 500);
+        }
+        else if(autoCounter == 6){
+          leftTurn(30.0);
+        }
+        else if(autoCounter == 7){
+          driveStraight(5.0, 500);
+        }
+        else if(autoCounter == 8){
+          leftTurn(60.0);
+        }
+        else if(autoCounter == 9){
+          driveStraight(5.0, 500);
+        }
+        else if(autoCounter == 10){
+          leftTurn(45.0);
+        }
+        else if(autoCounter == 11){
+          driveStraight(5.0, 500);
+        }
+        else if(autoCounter == 12){
+          leftTurn(45.0);
+        }
+        else if(autoCounter == 13){
+          driveStraight(5.0, 500);
+        }
+        else if(autoCounter == 14){
+          leftTurn(30.0);
+        }
+        else if(autoCounter == 15){
+          driveStraight(10.0, 500)
+        }
+        else if(autoCounter == 16){
+          rightTurn(45.0);
+        }
+        else if(autoCounter == 17){
+          driveStraight(5.0, 500);
+        }
+        else if(autoCounter == 18){
+          leftTurn(30.0);
+        }
+        
+        break;
+      case 2:
+        break;
+      case 3:
+        break;
+      default:
+
+
+    }
+
+    SmartDashboard.putNumber("autocounter", autoCounter);
+  }
+
+  /*
 
   @Override
   public void autonomousPeriodic() {
@@ -816,6 +923,8 @@ public class Robot extends TimedRobot {
 
     }
 
+    */
+
     public void driveStraight(double feet, double speed){
       double encoderFeet = feet * 6.095233693;
       if(e_Left1.getPosition() < encoderFeet || e_Left2.getPosition() < encoderFeet || e_Right1.getPosition() > -encoderFeet || e_Right2.getPosition() > -encoderFeet){
@@ -879,11 +988,3 @@ public class Robot extends TimedRobot {
     //endregion
 
 }
-
-  
-
-
-
-
-
-
