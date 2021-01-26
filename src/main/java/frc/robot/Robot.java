@@ -21,12 +21,15 @@ package frc.robot;
     import edu.wpi.first.wpilibj.smartdashboard.*;
     import edu.wpi.first.wpilibj.drive.*;
     import edu.wpi.first.wpilibj.SpeedControllerGroup.*;
+    import edu.wpi.first.wpilibj.Timer;
 
   //spark max/neos imports
     import com.revrobotics.*;
     import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-  //navx imports
+import javax.swing.text.Position;
+
+//navx imports
     import com.kauailabs.navx.frc.*;
 
   //endregion
@@ -42,19 +45,19 @@ public class Robot extends TimedRobot {
       public XboxController j_XboxController = new XboxController(4);
 
     //neos
-      public CANSparkMax m_Left1 = new CANSparkMax(12, MotorType.kBrushless);
-      public CANSparkMax m_Left2 = new CANSparkMax(13, MotorType.kBrushless);
-      public CANSparkMax m_Right1 = new CANSparkMax(1, MotorType.kBrushless);
-      public CANSparkMax m_Right2 = new CANSparkMax(2, MotorType.kBrushless);
-      public CANSparkMax m_Intake = new CANSparkMax(6, MotorType.kBrushless); //negative power for in, positive power for out
-      public CANSparkMax m_Feeder = new CANSparkMax(7, MotorType.kBrushless); //positive power for in, negative power for out
-      public CANSparkMax m_Tilting = new CANSparkMax(5, MotorType.kBrushless); //positive power for up, negative power for down
-      public CANSparkMax m_TopShooter = new CANSparkMax(11, MotorType.kBrushless); //positive power for out
-      public CANSparkMax m_BotShooter = new CANSparkMax(10, MotorType.kBrushless); //negative power for out
-      public CANSparkMax m_ControlPanel = new CANSparkMax(8, MotorType.kBrushless); //when facing robot's control panel wheel from front of bot, positive power spins ccw and negative power spins cw
-      public CANSparkMax m_Climb = new CANSparkMax(3, MotorType.kBrushless);
-      public CANSparkMax m_LeftWinch = new CANSparkMax(9, MotorType.kBrushless);
-      public CANSparkMax m_RightWinch = new CANSparkMax(4, MotorType.kBrushless);
+      public CANSparkMax m_Left1 = new CANSparkMax(42, MotorType.kBrushless); //OG 12 
+      public CANSparkMax m_Left2 = new CANSparkMax(60, MotorType.kBrushless); //OG 13
+      public CANSparkMax m_Right1 = new CANSparkMax(61, MotorType.kBrushless); //OG 1
+      public CANSparkMax m_Right2 = new CANSparkMax(62, MotorType.kBrushless); //OG 2
+      public CANSparkMax m_Intake = new CANSparkMax(8, MotorType.kBrushless); //negative power for in, positive power for out //OG 6
+      public CANSparkMax m_Feeder = new CANSparkMax(6, MotorType.kBrushless); //positive power for in, negative power for out //OG 7
+      public CANSparkMax m_Tilting = new CANSparkMax(5, MotorType.kBrushless); //positive power for up, negative power for down //OG 5
+      public CANSparkMax m_TopShooter = new CANSparkMax(11, MotorType.kBrushless); //positive power for out //OG 11
+      public CANSparkMax m_BotShooter = new CANSparkMax(10, MotorType.kBrushless); //negative power for out //OG 10
+      public CANSparkMax m_ControlPanel = new CANSparkMax(13, MotorType.kBrushless); //when facing robot's control panel wheel from front of bot, positive power spins ccw and negative power spins cw //OG 8
+      public CANSparkMax m_Climb = new CANSparkMax(3, MotorType.kBrushless); //OG 3
+      public CANSparkMax m_LeftWinch = new CANSparkMax(9, MotorType.kBrushless); //OG 9
+      public CANSparkMax m_RightWinch = new CANSparkMax(4, MotorType.kBrushless); //OG 4
 
     //neo encoders
       public CANEncoder e_Left1 = m_Left1.getEncoder(); //positive forward for Left
@@ -110,7 +113,7 @@ public class Robot extends TimedRobot {
     //solenoid variables
       public Solenoid s_LeftIntake = new Solenoid(7);
       public Solenoid s_RightIntake = new Solenoid(5);
-      public Solenoid s_ControlPanel = new Solenoid(4);
+      public Solenoid s_ControlPanel = new Solenoid(6);
 
     //navx variables
       public AHRS navX = new AHRS(SPI.Port.kMXP);
@@ -171,14 +174,18 @@ public class Robot extends TimedRobot {
         public boolean extendClimber;
 
       //variables for auto phase
-        public int autoCase;
-        public int autoCounter = 0;
+        public boolean auto1Completed = false;
+        public boolean auto2Completed = false;
+        public boolean auto3Completed = false;
+
+        public int autoCounter;
 
 
   //endregion
  
   @Override
   public void robotInit() {
+    SmartDashboard.putNumber("AutoCase", 1);
     e_Tilting.setPosition(0);
     m_Left.setInverted(true);
     m_Right.setInverted(false);
@@ -186,31 +193,32 @@ public class Robot extends TimedRobot {
     lidarSensor.setMaxPeriod(1.00); //set the max period that can be measured
     lidarSensor.setSemiPeriodMode(true); //Set the counter to period measurement
     lidarSensor.reset();
+    auto1Completed = false;
 
     //region_SettingPidVariables
-      kP_Left1 = .0001;
+      kP_Left1 = 0.000069;
       kI_Left1 = 0;
-      kD_Left1 = 0.01;
+      kD_Left1 = 0;
       kIz_Left1 = 0;
-      kFF_Left1 = .0001746724891;
+      kFF_Left1 = 0.00016978;
 
-      kP_Left2 = .0001;
+      kP_Left2 = 0.000069;
       kI_Left2 = 0;
-      kD_Left2 = 0.01;
+      kD_Left2 = 0;
       kIz_Left2 = 0;
-      kFF_Left2 = .0001746724891;
-      
-      kP_Right1 = .0001;
+      kFF_Left2 = 0.00016978;
+       
+      kP_Right1 = 0;
       kI_Right1 = 0;
-      kD_Right1 = 0.01;
+      kD_Right1 = 0;
       kIz_Right1 = 0;
-      kFF_Right1 = .0001746724891;
+      kFF_Right1 = 0;
       
-      kP_Right2 = .0001;
+      kP_Right2 = 0;
       kI_Right2 = 0;
-      kD_Right2 = 0.01;
+      kD_Right2 = 0;
       kIz_Right2 = 0;
-      kFF_Right2 = .0001746724891;
+      kFF_Right2 = 0;
         
       kP_Feeder = .5;
       kI_Feeder = 0;
@@ -226,7 +234,7 @@ public class Robot extends TimedRobot {
       
       kP_TopShooter = .00025;
       kI_TopShooter = 0;
-      kD_TopShooter = 0.01;
+      kD_TopShooter = 0.0001;
       kIz_TopShooter = 0;
       kFF_TopShooter = .00017969;
       
@@ -236,11 +244,11 @@ public class Robot extends TimedRobot {
       kIz_BotShooter = 0;
       kFF_BotShooter = .00018501;
       
-      kP_ControlPanel = 1;
+      kP_ControlPanel = 1; //0.000199
       kI_ControlPanel = 0;
       kD_ControlPanel = 0;
       kIz_ControlPanel = 0;
-      kFF_ControlPanel = 0;
+      kFF_ControlPanel = 0; //0.00008475
 
       kP_Climb = 1;
       kI_Climb = 0;
@@ -322,57 +330,25 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_Feeder.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    navX.zeroYaw();
+    e_Right1.setPosition(0);
+    e_Right2.setPosition(0);
+    e_Left1.setPosition(0);
+    e_Left2.setPosition(0);
+    e_Climb.setPosition(0);
+    pc_Tilting.setReference(63, ControlType.kPosition);
+    Timer.delay(1);
+
   }
 
   @Override
   public void autonomousPeriodic() {
-    SmartDashboard.putNumber("AutoCase", 1);
-    autoCase = (int)SmartDashboard.getNumber("AutoCase", 1);
-
-    switch (autoCase){
-      case 1:
-
-
-        if(autoCounter == 0){
-          m_BotShooter.stopMotor();
-          m_BotShooter.stopMotor();
-          rightTurn(90);
-        }
-        else if(autoCounter == 1){
-          driveStraight(5.333333333333333333333, 500);
-        }
-        else if(autoCounter == 2){
-          rightTurn(180);
-        }
-        else if(autoCounter == 3){
-          driveStraight(16.25, 500);
-          s_LeftIntake.set(true);
-          s_RightIntake.set(true);
-          intakingBalls();
-        }
-        else if(autoCounter == 4){
-          rightTurn(315);
-        }
-        else if(autoCounter == 5){
-          shootingBalls();
-        }
-        
-        break;
-      case 2:
-        break;
-      case 3:
-        break;
-      default:
-
+    while(Timer.getMatchTime() < 13 && Timer.getMatchTime() > 9){
+    }
+    if(auto2Completed==false){
 
     }
 
-    SmartDashboard.putNumber("autocounter", autoCounter);
-  }
-
-  @Override
-  public void teleopInit() {
-    m_Feeder.setIdleMode(CANSparkMax.IdleMode.kBrake);
   }
 
   @Override
@@ -462,27 +438,28 @@ public class Robot extends TimedRobot {
     e_Left1.setPosition(0);
     e_Left2.setPosition(0);
     e_Climb.setPosition(0);
+    e_ControlPanel.setPosition(0);
+    //testBeforeQueue();
   }
 
   @Override
   public void testPeriodic() {
-    
-    if (autoCounter == 0){
-      rightTurn(90);
-      //driveStraight(5, 2000);
+    if(j_Operator.getRawButton(1)){
+      //pc_ControlPanel.setReference(j_Operator.getZ()*1000, ControlType.kPosition);
+      //pc_ControlPanel.setReference(1000, ControlType.kVelocity);
+      //m_Left.set(-1);
+      //pc_Left1.setReference(2000, ControlType.kVelocity);
+      //pc_Left2.setReference(2000, ControlType.kVelocity);
+      m_Right.set(1);
     }
-    
-    climb();
-    SmartDashboard.putNumber("climb encoder counts", e_Climb.getPosition());
-    SmartDashboard.putNumber("right1", e_Right1.getPosition());
-    SmartDashboard.putNumber("right2", e_Right2.getPosition());
-    SmartDashboard.putNumber("left1", e_Left1.getPosition());
-    SmartDashboard.putNumber("left2", e_Left2.getPosition());
-    SmartDashboard.putNumber("navx", navX.getYaw() % 360);
-    SmartDashboard.putBoolean("climbextender", extendClimber);
-    SmartDashboard.putBoolean("switch climb mode ", switchClimbMode);
-    SmartDashboard.putBoolean("clmib mode", climbMode);
-    SmartDashboard.putBoolean("extend clmib mode", extendClimbMode);
+    else {
+      m_Right.set(0);
+    }
+    controlPanelExtend();
+
+    SmartDashboard.putNumber("WHEEL VELOCITY:", e_Right1.getVelocity());
+    SmartDashboard.putNumber("WHEEL ENCODER: ", e_ControlPanel.getPosition());
+    SmartDashboard.putNumber("WHEEL ENCODER Target: ", j_Operator.getZ()*1000);
 
 
 
@@ -502,12 +479,12 @@ public class Robot extends TimedRobot {
 
     public void joystickControl(){ //method for implementing our lowgear/highgear modes into our driver controls
       if(lowGear){
-        m_DriveTrain.tankDrive(j_Left.getY() * .7, -j_Right.getY() * .7);
-        //m_DriveTrain.tankDrive(j_XboxController.getY(Hand.kLeft)*.75, -j_XboxController.getY(Hand.kRight)*.75);
+        //m_DriveTrain.tankDrive(j_Left.getY() * .7, -j_Right.getY() * .7);
+        m_DriveTrain.tankDrive(j_XboxController.getY(Hand.kLeft)*.4, -j_XboxController.getY(Hand.kRight)*.4);
       }
       else{
-        m_DriveTrain.tankDrive(j_Left.getY(), -j_Right.getY());
-        //m_DriveTrain.tankDrive(j_XboxController.getY(Hand.kLeft), -j_XboxController.getY(Hand.kRight));
+        //m_DriveTrain.tankDrive(j_Left.getY(), -j_Right.getY());
+        m_DriveTrain.tankDrive(j_XboxController.getY(Hand.kLeft), -j_XboxController.getY(Hand.kRight));
       }
     }
 
@@ -728,13 +705,18 @@ public class Robot extends TimedRobot {
     public void controlPanelExtend(){ 
       if(j_Operator.getRawButton(6) && extendControlPanel){
         if(controlPanelExtended){
+          s_ControlPanel.set(true);
           controlPanelExtended = false;
           extendControlPanel = false;
         }
         else{
+          s_ControlPanel.set(false);
           controlPanelExtended = true;
           extendControlPanel = false;
         }
+      }
+      else if (j_Operator.getRawButton(6)){
+
       }
       else{
         extendControlPanel = true;
@@ -778,6 +760,9 @@ public class Robot extends TimedRobot {
           extendClimbMode = true;
         }
       }
+      else if (j_Operator.getRawButton(10)){
+
+      }
       else{
         extendClimber = true;
       }
@@ -791,6 +776,9 @@ public class Robot extends TimedRobot {
           switchClimbMode = false;
           climbMode = true;
         }
+      }
+      else if(j_Operator.getRawButton(11)){
+
       }
       else{
         switchClimbMode = true;
@@ -847,8 +835,10 @@ public class Robot extends TimedRobot {
         autoCounter ++;
       }
       else{
-        m_Left.set(.4);
-        m_Right.set(.4);
+        pc_Left1.setReference(1000, ControlType.kVelocity);
+        pc_Left2.setReference(1000, ControlType.kVelocity);
+        pc_Right1.setReference(1000, ControlType.kVelocity);
+        pc_Right2.setReference(1000, ControlType.kVelocity);
       }
 
     }
@@ -873,6 +863,64 @@ public class Robot extends TimedRobot {
         pc_Right2.setReference(-1000, ControlType.kVelocity);
       }
     }
+
+    public void testBeforeQueue(){
+      m_Left.set(.5);
+      Timer.delay(1);
+      m_Left.set(-.5);
+      Timer.delay(1);
+      m_Left.stopMotor();
+      m_Right.set(.5);
+      Timer.delay(1);
+      m_Right.set(-.5);
+      Timer.delay(1);
+      m_Right.stopMotor();
+      s_LeftIntake.set(true);
+      s_RightIntake.set(true);
+      m_Intake.set(-.5);
+      Timer.delay(1);
+      m_Intake.set(.5);
+      Timer.delay(1);
+      m_Intake.stopMotor();
+      s_LeftIntake.set(false);
+      s_RightIntake.set(false);
+      m_Feeder.set(.5);
+      Timer.delay(1);
+      m_Feeder.set(-.5);
+      Timer.delay(1);
+      m_Feeder.stopMotor();
+      pc_Tilting.setReference(50, ControlType.kPosition);
+      Timer.delay(1);
+      m_TopShooter.set(.5);
+      Timer.delay(1);
+      m_TopShooter.stopMotor();
+      m_BotShooter.set(-.5);
+      Timer.delay(1);
+      m_BotShooter.stopMotor();
+      pc_Tilting.setReference(0, ControlType.kPosition);
+      Timer.delay(1);
+      s_ControlPanel.set(true);
+      m_ControlPanel.set(.5);
+      Timer.delay(1);
+      m_ControlPanel.set(-.5);
+      Timer.delay(1);
+      m_ControlPanel.stopMotor();
+      s_ControlPanel.set(false);
+      m_LeftWinch.set(.2);
+      m_Right.set(-.2);
+      Timer.delay(1);
+      m_LeftWinch.set(-.2);
+      m_RightWinch.set(.2);
+      Timer.delay(1);
+      m_RightWinch.stopMotor();
+      m_LeftWinch.stopMotor();
+      pc_Climb.setReference(50, ControlType.kPosition);
+      Timer.delay(1);
+      pc_Climb.setReference(0, ControlType.kPosition);
+
+    }
+
+
     
     //endregion
 
