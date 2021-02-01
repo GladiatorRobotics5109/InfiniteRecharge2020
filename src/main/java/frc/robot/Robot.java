@@ -878,15 +878,60 @@ public class Robot extends TimedRobot {
         pc_Right2.setReference(-1000, ControlType.kVelocity);
       }
     }
-    
+    public void smoothTurnLeft(double robotSpeed, double targetDistance, double targetAngleDegrees){
+        //Calculates the amount of rpms it will take to get to a certain angle based on rotational speed
+        double robotVelocity = 1/kFF_Right1;
+        double wheelCircumference = 0.5 * Math.PI;
+        double singleRevolution = (23/12)*Math.PI/wheelCircumference;
+        //converts target distance(feet) to encoder counts
+        double encoderRotations = targetDistance/wheelCircumference;
+        //final calculation
+        double userRevolution = (singleRevolution/360)*targetAngleDegrees;
+        double turningSpeed = userRevolution/encoderRotations; 
+        //double rightSpeed = robotSpeed*robotVelocity;
+        if(robotSpeed+turningSpeed >= 1 || robotSpeed-turningSpeed <= -1 || robotSpeed == turningSpeed){
+          autoCounter ++;
+          System.out.println("value error, turning to fast over distance");
+        }
+        else if (turningSpeed < robotSpeed){
+          double leftSpeed = (robotSpeed-turningSpeed)*robotVelocity;
+          double rightSpeed = robotSpeed*robotVelocity;
+          if (e_Right1.getPosition() <= encoderRotations || e_Right2.getPosition() <= encoderRotations || e_Left1.getPosition() <= encoderRotations || e_Left2.getPosition() <= encoderRotations){
+            pc_Left1.setReference(rightSpeed, ControlType.kVelocity);
+            pc_Left2.setReference(rightSpeed, ControlType.kVelocity);
+            pc_Right1.setReference(-leftSpeed, ControlType.kVelocity);
+            pc_Right2.setReference(-leftSpeed, ControlType.kVelocity);
+          //calculates the remainder encoder counts after the target distance is achieved and drives straight until it is achieved
+          /*double newTargetRevolutions = encoderRotations - userRevolution;
+          driveStraight(newTargetRevolutions, 0.1);*/
+          }
+          else{
+            m_DriveTrain.stopMotor();
+            autoCounter ++;
+          }
+        }
+        else if(turningSpeed > robotSpeed){
+          double rightSpeed = (robotSpeed+turningSpeed)*robotVelocity;
+          double leftSpeed = robotSpeed*robotVelocity;
+          if (e_Right1.getPosition() <= encoderRotations || e_Right2.getPosition() <= encoderRotations || e_Left1.getPosition() <= encoderRotations || e_Left2.getPosition() <= encoderRotations){
+            pc_Left1.setReference(rightSpeed, ControlType.kVelocity);
+            pc_Left2.setReference(rightSpeed, ControlType.kVelocity);
+            pc_Right1.setReference(-leftSpeed, ControlType.kVelocity);
+            pc_Right2.setReference(-leftSpeed, ControlType.kVelocity);
+          //calculates the remainder encoder counts after the target distance is achieved and drives straight until it is achieved
+          /*double newTargetRevolutions = encoderRotations - userRevolution;
+          driveStraight(newTargetRevolutions, 0.1);*/
+          }
+          else{
+            m_DriveTrain.stopMotor();
+            autoCounter ++;
+          }
+        }
+        else{
+          m_DriveTrain.stopMotor();
+            autoCounter ++;
+        }
+      }
     //endregion
 
 }
-
-  
-
-
-
-
-
-
