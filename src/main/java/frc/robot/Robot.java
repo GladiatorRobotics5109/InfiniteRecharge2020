@@ -6,7 +6,6 @@
   /* must be accompanied by the FIRST BSD license file in the root directory of */
   /* the project.                                                               */
   /*----------------------------------------------------------------------------*/
-  /*How Much Wood Could a Woodchuck chuck if a woodchuck could chuckwood*/
 
 //endregion
 
@@ -822,6 +821,47 @@ public class Robot extends TimedRobot {
         pc_Left2.setReference(speed, ControlType.kVelocity);
         pc_Right1.setReference(-speed, ControlType.kVelocity);
         pc_Right2.setReference(-speed, ControlType.kVelocity);
+      }
+      else{
+        m_DriveTrain.stopMotor();
+        e_Right1.setPosition(0);
+        e_Right2.setPosition(0);
+        e_Left1.setPosition(0);
+        e_Left2.setPosition(0);
+        autoCounter ++;
+      }
+    }
+
+    public void Clockwise(double degrees, double speed){
+      double innerDistance = (49*Math.PI*(degrees/360))/5;
+      double outerDistance = (95*Math.PI*(degrees/360))/5;
+
+      if(e_Left1.getPosition() < innerDistance || e_Left2.getPosition() < innerDistance || e_Right1.getPosition() > -outerDistance || e_Right2.getPosition() > -outerDistance){
+        pc_Left1.setReference(speed, ControlType.kVelocity);
+        pc_Left2.setReference(speed, ControlType.kVelocity);
+        pc_Right1.setReference(-speed, ControlType.kVelocity);
+        pc_Right2.setReference(-speed, ControlType.kVelocity);
+      }
+      else{
+        m_DriveTrain.stopMotor();
+        e_Right1.setPosition(0);
+        e_Right2.setPosition(0);
+        e_Left1.setPosition(0);
+        e_Left2.setPosition(0);
+        autoCounter ++;
+      }
+    
+    }
+
+    public void CounterClockwise (double degrees, double speed){
+      double innerDistance = (49*Math.PI*(degrees/360))/5;
+      double outerDistance = (95*Math.PI*(degrees/360))/5;
+
+      if(e_Left1.getPosition() < innerDistance || e_Left2.getPosition() < innerDistance || e_Right1.getPosition() > -outerDistance || e_Right2.getPosition() > -outerDistance){
+        pc_Left1.setReference(-speed, ControlType.kVelocity);
+        pc_Left2.setReference(-speed, ControlType.kVelocity);
+        pc_Right1.setReference(speed, ControlType.kVelocity);
+        pc_Right2.setReference(speed, ControlType.kVelocity);
       }
       else{
         m_DriveTrain.stopMotor();
