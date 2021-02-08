@@ -334,27 +334,31 @@ public class Robot extends TimedRobot {
 
 
         if(autoCounter == 0){
-          m_BotShooter.stopMotor();
-          m_BotShooter.stopMotor();
-          rightTurn(90);
+          driveStraight(12.6, 250);
         }
         else if(autoCounter == 1){
-          driveStraight(5.333333333333333333333, 500);
+          Clockwise(360, 250);
         }
         else if(autoCounter == 2){
-          rightTurn(180);
+          leftTurn(33.7);
         }
         else if(autoCounter == 3){
-          driveStraight(16.25, 500);
-          s_LeftIntake.set(true);
-          s_RightIntake.set(true);
-          intakingBalls();
+          driveStraight(9, 250);
         }
         else if(autoCounter == 4){
-          rightTurn(315);
+          CounterClockwise(360, 250);
         }
         else if(autoCounter == 5){
-          shootingBalls();
+          rightTurn(45);
+        }
+        else if(autoCounter == 6){
+          driveStraight(7, 250);
+        }
+        else if(autoCounter == 7){
+          CounterClockwise(270, 250);
+        }
+        else if(autoCounter == 8){
+          driveStraight(25, 500);
         }
         
         break;
