@@ -471,9 +471,32 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
     
-    if (autoCounter == 0){
-      rightTurn(90);
-      //driveStraight(5, 2000);
+    if(autoCounter == 0){
+      driveStraight(12.6, 250);
+    }
+    else if(autoCounter == 1){
+      Clockwise(360, 250);
+    }
+    else if(autoCounter == 2){
+      leftTurn(33.7);
+    }
+    else if(autoCounter == 3){
+      driveStraight(9, 250);
+    }
+    else if(autoCounter == 4){
+      CounterClockwise(360, 250);
+    }
+    else if(autoCounter == 5){
+      rightTurn(45);
+    }
+    else if(autoCounter == 6){
+      driveStraight(7, 250);
+    }
+    else if(autoCounter == 7){
+      CounterClockwise(270, 250);
+    }
+    else if(autoCounter == 8){
+      driveStraight(25, 500);
     }
     
     climb();
