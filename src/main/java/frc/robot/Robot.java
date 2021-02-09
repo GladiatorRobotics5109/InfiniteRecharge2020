@@ -360,63 +360,65 @@ public class Robot extends TimedRobot {
 
     switch (autoCase){
       case 1:
-        if(autoCounter == 0){
+      switch (autoCounter) {
+        case 0:
           driveStraight(1.5, 500);
-        }
-        else if(autoCounter == 1){
+          break;
+        case 1:
           leftTurn(45.0);
-        }
-        else if(autoCounter == 2){
+          break;
+        case 2:
           rightTurn(30.0);
-        }
-        else if(autoCounter == 3){
+          break;
+        case 3:
           driveStraight(10.0, 500);
-        }
-        else if(autoCounter == 4){
+          break;
+        case 4:
           rightTurn(45.0);
-        }
-        else if(autoCounter == 5){
+          break;
+        case 5:
           driveStraight(5.0, 500);
-        }
-        else if(autoCounter == 6){
+          break;
+        case 6:
           leftTurn(30.0);
-        }
-        else if(autoCounter == 7){
+          break;
+        case 7:
           driveStraight(5.0, 500);
-        }
-        else if(autoCounter == 8){
+          break;
+        case 8:
           leftTurn(60.0);
-        }
-        else if(autoCounter == 9){
+          break;
+        case 9:
           driveStraight(5.0, 500);
-        }
-        else if(autoCounter == 10){
+          break;
+        case 10:
           leftTurn(45.0);
-        }
-        else if(autoCounter == 11){
+          break;
+        case 11:
           driveStraight(5.0, 500);
-        }
-        else if(autoCounter == 12){
+          break;
+        case 12:
           leftTurn(45.0);
-        }
-        else if(autoCounter == 13){
+          break;
+        case 13:
           driveStraight(5.0, 500);
-        }
-        else if(autoCounter == 14){
+          break;
+        case 14:
           leftTurn(30.0);
-        }
-        else if(autoCounter == 15){
-          driveStraight(10.0, 500)
-        }
-        else if(autoCounter == 16){
+          break;
+        case 15:
+          driveStraight(10.0, 500);
+          break;
+        case 16:
           rightTurn(45.0);
-        }
-        else if(autoCounter == 17){
+          break;
+        case 17:
           driveStraight(5.0, 500);
-        }
-        else if(autoCounter == 18){
+          break;
+        case 18:
           leftTurn(30.0);
-        }
+          break;
+      }
         
         break;
       case 2:
@@ -573,14 +575,16 @@ public class Robot extends TimedRobot {
     e_Climb.setPosition(0);
   }
 
+  */
+
   @Override
   public void testPeriodic() {
     
-    if (autoCounter == 0){
-      rightTurn(90);
-      //driveStraight(5, 2000);
+    if(j_Operator.getRawButton(1) && autoCounter <= 0)) {
+      smartTurn("Right", 0.3, 45.0f, 0.1);
     }
     
+    /*
     climb();
     SmartDashboard.putNumber("climb encoder counts", e_Climb.getPosition());
     SmartDashboard.putNumber("right1", e_Right1.getPosition());
@@ -984,7 +988,51 @@ public class Robot extends TimedRobot {
         pc_Right2.setReference(-1000, ControlType.kVelocity);
       }
     }
-    
+
+    public void smartTurn(String direction, double robotSpeed, double targetAngle, double turnSpeed) {
+      double turnCircumfrence = 2*Math.PI*turnRadius;
+      double encoderTargetDistance = turnCircumfrence*6.095233693;
+      navX.zeroYaw();
+      double currentYaw = navX.getYaw() % 360;
+      /*
+      pseudo code:
+      we need the OUTSIDE TRAVEL DISTANCE and the RADIUS BETWEEN THE WHEELS.
+      Calculation to find the angle traveled: https://www.google.com/url?sa=i&url=http%3A%2F%2Fwww.1728.org%2Fradians.htm&psig=AOvVaw2XZpr1Ro6lgzD6xxkGbHcO&ust=1612991533178000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCNC-4u3b3e4CFQAAAAAdAAAAABAJ
+      To calculate:
+        encoder distance/distance between the two wheels = angle of how far the robot turned in RADIANS.
+      */
+      if (currentYaw < targetAngle) {
+        switch (direction) {
+          case "Right":
+          case "right":
+          case "r":
+            System.out.println("right")
+            double normalSpeed = robotSpeed
+            double turnWheelSpeed = robotSpeed + turnSpeed
+            pc_Right1.setReference(turnWheelSpeed, ControlType.kVelocity);
+            pc_Right2.setReference(turnWheelSpeed, ControlType.kVelocity);
+            pc_Left1.setReference(-normalSpeed, ControlType.kVelocity);
+            pc_Left2.setReference(-normalSpeed, ControlType.kVelocity);
+            break;
+          case "Left":
+          case "left":
+          case "l":
+            System.out.println("left")
+            double normalSpeed = robotSpeed
+            double turnWheelSpeed = robotSpeed + turnSpeed
+            pc_Right1.setReference(normalSpeed, ControlType.kVelocity);
+            pc_Right2.setReference(normalSpeed, ControlType.kVelocity);
+            pc_Left1.setReference(-turnWheelSpeed, ControlType.kVelocity);
+            pc_Left2.setReference(-turnWheelSpeed, ControlType.kVelocity);
+            break;
+          default:
+            System.out.println("You did not give a direction.")
+        }
+      }
+      else if (currentYaw >= targetAngle)
+      
+      double totalAngleTurned =  
+    }
     //endregion
 
 }
