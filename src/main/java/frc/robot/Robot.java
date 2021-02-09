@@ -179,6 +179,9 @@ public class Robot extends TimedRobot {
         public int autoCase;
         public int autoCounter = 0;
 
+      //Testing turn variables
+        public Boolean checkedYaw = false;
+
 
   //endregion
  
@@ -354,96 +357,11 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void path2Autonomous() {
-    SmartDashboard.putNumber("AutoCase", 1);
-    autoCase = (int)SmartDashboard.getNumber("AutoCase", 1);
-
-    switch (autoCase){
-      case 1:
-      switch (autoCounter) {
-        case 0:
-          driveStraight(1.5, 500);
-          break;
-        case 1:
-          leftTurn(45.0);
-          break;
-        case 2:
-          rightTurn(30.0);
-          break;
-        case 3:
-          driveStraight(10.0, 500);
-          break;
-        case 4:
-          rightTurn(45.0);
-          break;
-        case 5:
-          driveStraight(5.0, 500);
-          break;
-        case 6:
-          leftTurn(30.0);
-          break;
-        case 7:
-          driveStraight(5.0, 500);
-          break;
-        case 8:
-          leftTurn(60.0);
-          break;
-        case 9:
-          driveStraight(5.0, 500);
-          break;
-        case 10:
-          leftTurn(45.0);
-          break;
-        case 11:
-          driveStraight(5.0, 500);
-          break;
-        case 12:
-          leftTurn(45.0);
-          break;
-        case 13:
-          driveStraight(5.0, 500);
-          break;
-        case 14:
-          leftTurn(30.0);
-          break;
-        case 15:
-          driveStraight(10.0, 500);
-          break;
-        case 16:
-          rightTurn(45.0);
-          break;
-        case 17:
-          driveStraight(5.0, 500);
-          break;
-        case 18:
-          leftTurn(30.0);
-          break;
-      }
-        
-        break;
-      case 2:
-        break;
-      case 3:
-        break;
-      default:
-
-
-    }
-
-    SmartDashboard.putNumber("autocounter", autoCounter);
-  }
-
-  /*
-
-  @Override
   public void autonomousPeriodic() {
     SmartDashboard.putNumber("AutoCase", 1);
     autoCase = (int)SmartDashboard.getNumber("AutoCase", 1);
-
     switch (autoCase){
       case 1:
-
-
         if(autoCounter == 0){
           m_BotShooter.stopMotor();
           m_BotShooter.stopMotor();
@@ -474,22 +392,16 @@ public class Robot extends TimedRobot {
       case 3:
         break;
       default:
-
-
     }
-
     SmartDashboard.putNumber("autocounter", autoCounter);
   }
-
   @Override
   public void teleopInit() {
     m_Feeder.setIdleMode(CANSparkMax.IdleMode.kBrake);
   }
-
   @Override
   public void teleopPeriodic() {
     gettingVision();
-
     //if/else series controlling drivetrain motors
     if (j_Right.getTrigger()){
       visionTracking();
@@ -498,7 +410,6 @@ public class Robot extends TimedRobot {
       joystickControl();
       gearSwitching();
     }
-
     //if/else series controlling intaking and shooting balls
     if (j_Operator.getRawButton(1)){
       intakingBalls();
@@ -515,7 +426,6 @@ public class Robot extends TimedRobot {
       m_TopShooter.stopMotor();
       m_BotShooter.stopMotor();
     } 
-
     if(j_Operator.getRawButton(7)){
       if(targetColor == 0){
         controlPanelRevolution();
@@ -524,7 +434,6 @@ public class Robot extends TimedRobot {
         controlPanelColorSpin();
       }
     }
-
     climb();
     gameData();
     controlPanelExtend();
@@ -532,7 +441,6 @@ public class Robot extends TimedRobot {
     ballCounterReset();
     lidarDistance();
     colorFinder();
-
     //region_SmartDashboard
       //values that are being put into smart dashboard
       SmartDashboard.putNumber("right joy", j_Right.getY());
@@ -560,7 +468,6 @@ public class Robot extends TimedRobot {
       else {
         SmartDashboard.putBoolean("Aligned", false);
       }
-
     //endregion
   }
  
@@ -574,17 +481,18 @@ public class Robot extends TimedRobot {
     e_Left2.setPosition(0);
     e_Climb.setPosition(0);
   }
-
-  */
+  
 
   @Override
   public void testPeriodic() {
     
-    if(j_Operator.getRawButton(1) && autoCounter <= 0)) {
-      smartTurn("Right", 0.3, 45.0f, 0.1);
+    if(j_Operator.getRawButton(1)) {
+      driveStraight(50, 0.3);
+      //smartTurn("Right", 0.3, 45.0, 0.1);
     }
+  
     
-    /*
+    
     climb();
     SmartDashboard.putNumber("climb encoder counts", e_Climb.getPosition());
     SmartDashboard.putNumber("right1", e_Right1.getPosition());
@@ -596,9 +504,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("switch climb mode ", switchClimbMode);
     SmartDashboard.putBoolean("clmib mode", climbMode);
     SmartDashboard.putBoolean("extend clmib mode", extendClimbMode);
-
-
-
   }
 
   //region_Methods
@@ -612,7 +517,6 @@ public class Robot extends TimedRobot {
       areaBlue = controlPanelVision.getEntry("AreaBlue").getDouble(0);
       areaYel = controlPanelVision.getEntry("AreaYellow").getDouble(0);
     }  
-
     public void joystickControl(){ //method for implementing our lowgear/highgear modes into our driver controls
       if(lowGear){
         m_DriveTrain.tankDrive(j_Left.getY() * .7, -j_Right.getY() * .7);
@@ -623,7 +527,6 @@ public class Robot extends TimedRobot {
         //m_DriveTrain.tankDrive(j_XboxController.getY(Hand.kLeft), -j_XboxController.getY(Hand.kRight));
       }
     }
-
     public void gearSwitching(){ //method for switching our bot to lowgear(less sensitive) or highgear(speedyboi)
       if(j_Right.getRawButton(2) && switchGears || j_XboxController.getTriggerAxis(Hand.kLeft) >.5 && switchGears ){
         if(lowGear){
@@ -639,7 +542,6 @@ public class Robot extends TimedRobot {
         switchGears = true;
       }
     }
-
     public void intake(){ //method for spinning our intake and for ejecting it
       if(j_Operator.getRawButton(1)){
         intakeExtended = true;
@@ -666,23 +568,19 @@ public class Robot extends TimedRobot {
         s_RightIntake.set(false);
       }
     }    
-
     public void visionTracking() {
       if (chameleon_Yaw < -2) {
         pc_Right1.setReference(-500, ControlType.kVelocity);
         pc_Right2.setReference(-500, ControlType.kVelocity);
         pc_Left1.setReference(-500, ControlType.kVelocity);
         pc_Left2.setReference(-500, ControlType.kVelocity);
-
       }
-
       else if (chameleon_Yaw > 2) {
         pc_Right1.setReference(500, ControlType.kVelocity);
         pc_Right2.setReference(500, ControlType.kVelocity);
         pc_Left1.setReference(500, ControlType.kVelocity);
         pc_Left2.setReference(500, ControlType.kVelocity);
       }
-
       else {
         m_Left1.stopMotor();
         m_Left2.stopMotor();
@@ -690,7 +588,6 @@ public class Robot extends TimedRobot {
         m_Right2.stopMotor();
       }
     }
-
     public void intakingBalls() {
       newBallBoolean = interruptSensor.get();
       if(oldBallBoolean != newBallBoolean && newBallBoolean == true && ballDebounceBoolean == false){
@@ -711,16 +608,13 @@ public class Robot extends TimedRobot {
       else if (ballDebounceBoolean == true){
         ballDebounceBoolean = false;
       }
-
       else if (oldBallBoolean == true && newBallBoolean == false){
         ballDebounceBoolean = true;
       }
-
       else{
         m_Intake.set(1);
         //j_XboxController.setRumble(RumbleType.kLeftRumble, 0);
       }
-
       if (ballCounter > 3){
         Timer.delay(.5);
         intakeExtended = false;
@@ -751,11 +645,9 @@ public class Robot extends TimedRobot {
       else {
         m_TopShooter.set(0);
       }
-
       if (readyToFeed = true){
       m_Feeder.set(1);
       }
-
       else {
         m_Feeder.stopMotor();
       }
@@ -785,7 +677,6 @@ public class Robot extends TimedRobot {
         dist = (lidarSensor.getPeriod()*1000000.0/10.0) - off; //convert to distance. sensor is high 10 us for every centimeter. 
       }
     }
-
     public void colorFinder() {
       if (areaBlue > areaGreen && areaBlue > areaRed && areaBlue > areaYel){
         currentColor = 1;
@@ -803,7 +694,6 @@ public class Robot extends TimedRobot {
        currentColor = 0;
         }
     }
-
     public void controlPanelRevolution() {
       if (sawColor == true && currentColor == targetColor){
         revolutionCount++;
@@ -823,9 +713,7 @@ public class Robot extends TimedRobot {
       else{
         m_ControlPanel.stopMotor();
       }
-
     }
-
     public void controlPanelColorSpin() {
       if (currentColor == targetColor){
         m_ControlPanel.stopMotor();
@@ -837,7 +725,6 @@ public class Robot extends TimedRobot {
         m_ControlPanel.set(-Math.abs(currentColor - targetColor) / controlPanelConstant);
       }
     }
-
     public void controlPanelExtend(){ 
       if(j_Operator.getRawButton(6) && extendControlPanel){
         if(controlPanelExtended){
@@ -853,7 +740,6 @@ public class Robot extends TimedRobot {
         extendControlPanel = true;
       }
     }
-
     public void gameData(){
       gameData = DriverStation.getInstance().getGameSpecificMessage();
       if(gameData.length() > 0){
@@ -894,7 +780,6 @@ public class Robot extends TimedRobot {
       else{
         extendClimber = true;
       }
-
       if(j_Operator.getRawButton(11) && switchClimbMode){
         if(climbMode){
           switchClimbMode = false;
@@ -908,7 +793,6 @@ public class Robot extends TimedRobot {
       else{
         switchClimbMode = true;
       }
-
       if (climbMode == false) {
         m_LeftWinch.stopMotor();
         m_RightWinch.stopMotor();
@@ -917,17 +801,13 @@ public class Robot extends TimedRobot {
         m_LeftWinch.set(-j_Operator.getY());
         m_RightWinch.set(j_Operator.getY());
       }
-
       if (extendClimbMode == false) {
         m_Climb.stopMotor();
       }
       else {
         m_Climb.set(j_Operator.getY());
       }
-
     }
-
-    */
 
     public void driveStraight(double feet, double speed){
       double encoderFeet = feet * 6.095233693;
@@ -990,8 +870,8 @@ public class Robot extends TimedRobot {
     }
 
     public void smartTurn(String direction, double robotSpeed, double targetAngle, double turnSpeed) {
-      double turnCircumfrence = 2*Math.PI*turnRadius;
-      double encoderTargetDistance = turnCircumfrence*6.095233693;
+      //double turnCircumfrence = 2*Math.PI*turnRadius;
+      //double encoderTargetDistance = turnCircumfrence*6.095233693;
       navX.zeroYaw();
       double currentYaw = navX.getYaw() % 360;
       /*
@@ -1002,13 +882,15 @@ public class Robot extends TimedRobot {
         encoder distance/distance between the two wheels = angle of how far the robot turned in RADIANS.
       */
       if (currentYaw < targetAngle) {
+        double normalSpeed = 0.0;
+        double turnWheelSpeed = 0.0;
         switch (direction) {
           case "Right":
           case "right":
           case "r":
-            System.out.println("right")
-            double normalSpeed = robotSpeed
-            double turnWheelSpeed = robotSpeed + turnSpeed
+            System.out.println("right");
+            normalSpeed = robotSpeed;
+            turnWheelSpeed = robotSpeed + turnSpeed;
             pc_Right1.setReference(turnWheelSpeed, ControlType.kVelocity);
             pc_Right2.setReference(turnWheelSpeed, ControlType.kVelocity);
             pc_Left1.setReference(-normalSpeed, ControlType.kVelocity);
@@ -1017,21 +899,27 @@ public class Robot extends TimedRobot {
           case "Left":
           case "left":
           case "l":
-            System.out.println("left")
-            double normalSpeed = robotSpeed
-            double turnWheelSpeed = robotSpeed + turnSpeed
+            System.out.println("left");
+            normalSpeed = robotSpeed;
+            turnWheelSpeed = robotSpeed + turnSpeed;
             pc_Right1.setReference(normalSpeed, ControlType.kVelocity);
             pc_Right2.setReference(normalSpeed, ControlType.kVelocity);
             pc_Left1.setReference(-turnWheelSpeed, ControlType.kVelocity);
             pc_Left2.setReference(-turnWheelSpeed, ControlType.kVelocity);
             break;
           default:
-            System.out.println("You did not give a direction.")
+            System.out.println("You did not give a direction.");
         }
       }
-      else if (currentYaw >= targetAngle)
+      else if (currentYaw >= targetAngle) {
+        m_DriveTrain.stopMotor();
+        e_Right1.setPosition(0);
+        e_Right2.setPosition(0);
+        e_Left1.setPosition(0);
+        e_Left2.setPosition(0);
+        checkedYaw = false;
+      };
       
-      double totalAngleTurned =  
     }
     //endregion
 
