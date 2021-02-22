@@ -878,8 +878,12 @@ public class Robot extends TimedRobot {
         pc_Right2.setReference(-1000, ControlType.kVelocity);
       }
     }
-    
+    public void testCommand(String message){
+      System.out.println(message)
+    }
+
     //endregion
+    //adding change
 
 }
 
