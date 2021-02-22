@@ -7,7 +7,10 @@
   /* the project.                                                               */
   /*----------------------------------------------------------------------------*/
 
+//RANDOM COMMENT
+
 //endregion
+//jacob commented here
 
 //comment
 
@@ -36,7 +39,7 @@ package frc.robot;
 public class Robot extends TimedRobot {
 
   //region_Variables
-
+    //commented 37 wowowoowowoww yifan is chungo
     //joysticks
       public Joystick j_Left = new Joystick(0);
       public Joystick j_Right = new Joystick(1);
@@ -188,7 +191,7 @@ public class Robot extends TimedRobot {
     lidarSensor.setMaxPeriod(1.00); //set the max period that can be measured
     lidarSensor.setSemiPeriodMode(true); //Set the counter to period measurement
     lidarSensor.reset();
-
+    //kyleisnewzibran
     //region_SettingPidVariables
       kP_Left1 = .0001;
       kI_Left1 = 0;
