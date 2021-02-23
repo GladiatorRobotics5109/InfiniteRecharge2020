@@ -42,20 +42,19 @@ public class Robot extends TimedRobot {
       public XboxController j_XboxController = new XboxController(4);
 
     //neos
-      public CANSparkMax m_Left1 = new CANSparkMax(12, MotorType.kBrushless);
-      public CANSparkMax m_Left2 = new CANSparkMax(13, MotorType.kBrushless);
-      public CANSparkMax m_Right1 = new CANSparkMax(1, MotorType.kBrushless);
-      public CANSparkMax m_Right2 = new CANSparkMax(2, MotorType.kBrushless);
-      public CANSparkMax m_Intake = new CANSparkMax(6, MotorType.kBrushless); //negative power for in, positive power for out
-      public CANSparkMax m_Feeder = new CANSparkMax(7, MotorType.kBrushless); //positive power for in, negative power for out
-      public CANSparkMax m_Tilting = new CANSparkMax(5, MotorType.kBrushless); //positive power for up, negative power for down
-      public CANSparkMax m_TopShooter = new CANSparkMax(11, MotorType.kBrushless); //positive power for out
-      public CANSparkMax m_BotShooter = new CANSparkMax(10, MotorType.kBrushless); //negative power for out
-      public CANSparkMax m_ControlPanel = new CANSparkMax(8, MotorType.kBrushless); //when facing robot's control panel wheel from front of bot, positive power spins ccw and negative power spins cw
-      public CANSparkMax m_Climb = new CANSparkMax(3, MotorType.kBrushless);
-      public CANSparkMax m_LeftWinch = new CANSparkMax(9, MotorType.kBrushless);
-      public CANSparkMax m_RightWinch = new CANSparkMax(4, MotorType.kBrushless);
-
+      public CANSparkMax m_Left1 = new CANSparkMax(42, MotorType.kBrushless); //OG 12 
+      public CANSparkMax m_Left2 = new CANSparkMax(60, MotorType.kBrushless); //OG 13
+      public CANSparkMax m_Right1 = new CANSparkMax(61, MotorType.kBrushless); //OG 1
+      public CANSparkMax m_Right2 = new CANSparkMax(62, MotorType.kBrushless); //OG 2
+      public CANSparkMax m_Intake = new CANSparkMax(8, MotorType.kBrushless); //negative power for in, positive power for out //OG 6
+      public CANSparkMax m_Feeder = new CANSparkMax(6, MotorType.kBrushless); //positive power for in, negative power for out //OG 7
+      public CANSparkMax m_Tilting = new CANSparkMax(5, MotorType.kBrushless); //positive power for up, negative power for down //OG 5
+      public CANSparkMax m_TopShooter = new CANSparkMax(11, MotorType.kBrushless); //positive power for out //OG 11
+      public CANSparkMax m_BotShooter = new CANSparkMax(10, MotorType.kBrushless); //negative power for out //OG 10
+      public CANSparkMax m_ControlPanel = new CANSparkMax(13, MotorType.kBrushless); //when facing robot's control panel wheel from front of bot, positive power spins ccw and negative power spins cw //OG 8
+      public CANSparkMax m_Climb = new CANSparkMax(3, MotorType.kBrushless); //OG 3
+      public CANSparkMax m_LeftWinch = new CANSparkMax(9, MotorType.kBrushless); //OG 9
+      public CANSparkMax m_RightWinch = new CANSparkMax(4, MotorType.kBrushless); //OG 4
     //neo encoders
       public CANEncoder e_Left1 = m_Left1.getEncoder(); //positive forward for Left
       public CANEncoder e_Left2 = m_Left2.getEncoder();
@@ -171,7 +170,7 @@ public class Robot extends TimedRobot {
         public boolean extendClimber;
 
       //variables for auto phase
-        public int autoCase;
+        public int autoCase;  
         public int autoCounter = 0;
 
 
@@ -470,33 +469,34 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
-    
-    if(autoCounter == 0){
-      driveStraight(12.6, 250);
+    m_Tilting.set(j_Operator.getY());
+    /*if(autoCounter == 0){
+      smoothTurnLeft(0.3, 10, 170);
+      autoCounter++;
     }
     else if(autoCounter == 1){
-      Clockwise(360, 250);
+      //Clockwise(360, 250);
     }
     else if(autoCounter == 2){
-      leftTurn(33.7);
+      //leftTurn(33.7);
     }
     else if(autoCounter == 3){
-      driveStraight(9, 250);
+      //driveStraight(9, 250);
     }
     else if(autoCounter == 4){
-      CounterClockwise(360, 250);
+      //CounterClockwise(360, 250);
     }
     else if(autoCounter == 5){
-      rightTurn(45);
+      //rightTurn(45);
     }
     else if(autoCounter == 6){
-      driveStraight(7, 250);
+      //driveStraight(7, 250);
     }
     else if(autoCounter == 7){
-      CounterClockwise(270, 250);
+      //CounterClockwise(270, 250);
     }
     else if(autoCounter == 8){
-      driveStraight(25, 500);
+     // driveStraight(25, 500);
     }
     
     climb();
@@ -511,7 +511,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("clmib mode", climbMode);
     SmartDashboard.putBoolean("extend clmib mode", extendClimbMode);
 
-
+*/
 
   }
 
@@ -858,6 +858,64 @@ public class Robot extends TimedRobot {
         autoCounter ++;
       }
     }
+    public void smoothTurnLeft(double robotSpeed, double targetDistance, double targetAngleDegrees){
+        //Calculates the amount of rpms it will take to get to a certain angle based on rotational speed
+        double robotVelocity = 1/kFF_Right1;
+        double wheelCircumference = 0.5 * Math.PI;
+        double singleRevolution = 23/0.5;
+        //converts target distance(feet) to encoder counts
+        double encoderRotations = targetDistance/wheelCircumference;
+        //final calculation
+        double userRevolution = (singleRevolution/360)*targetAngleDegrees;
+        //double turningSpeed = 0
+        double turningSpeed = encoderRotations/userRevolution; 
+        if(robotSpeed+turningSpeed >= 1 || robotSpeed-turningSpeed <= -1 || robotSpeed == turningSpeed){
+          autoCounter ++;
+          System.out.println("value error, turning to fast over distance");
+        }
+        else if (turningSpeed < robotSpeed){
+          double leftSpeed = (robotSpeed-turningSpeed)*robotVelocity;
+          double rightSpeed = robotSpeed*robotVelocity;
+          if (e_Right1.getPosition() <= encoderRotations || e_Right2.getPosition() <= encoderRotations || e_Left1.getPosition() <= encoderRotations || e_Left2.getPosition() <= encoderRotations){
+            pc_Left1.setReference(rightSpeed, ControlType.kVelocity);
+            pc_Left2.setReference(rightSpeed, ControlType.kVelocity);
+            pc_Right1.setReference(-leftSpeed, ControlType.kVelocity);
+            pc_Right2.setReference(-leftSpeed, ControlType.kVelocity);
+          //calculates the remainder encoder counts after the target distance is achieved and drives straight until it is achieved
+          /*double newTargetRevolutions = encoderRotations - userRevolution;
+          driveStraight(newTargetRevolutions, 0.1);*/
+          }
+          else{
+            m_DriveTrain.stopMotor();
+            autoCounter ++;
+          }
+        }
+        else if(turningSpeed > robotSpeed){
+          double rightSpeed = (robotSpeed+turningSpeed)*robotVelocity;
+          double leftSpeed = robotSpeed*robotVelocity;
+          if (e_Right1.getPosition() <= encoderRotations || e_Right2.getPosition() <= encoderRotations || e_Left1.getPosition() <= encoderRotations || e_Left2.getPosition() <= encoderRotations){
+            pc_Left1.setReference(rightSpeed, ControlType.kVelocity);
+            pc_Left2.setReference(rightSpeed, ControlType.kVelocity);
+            pc_Right1.setReference(-leftSpeed, ControlType.kVelocity);
+            pc_Right2.setReference(-leftSpeed, ControlType.kVelocity);
+          //calculates the remainder encoder counts after the target distance is achieved and drives straight until it is achieved
+          /*double newTargetRevolutions = encoderRotations - userRevolution;
+          driveStraight(newTargetRevolutions, 0.1);*/
+          }
+          else{
+            m_DriveTrain.stopMotor();
+          }
+        }
+        else{
+          m_DriveTrain.stopMotor();
+            e_Right1.setPosition(0);
+            e_Right2.setPosition(0);
+            e_Left1.setPosition(0);
+            e_Left2.setPosition(0);
+        }
+      }
+
+
 
     public void Clockwise(double degrees, double speed){
       double innerDistance = (49*Math.PI*(degrees/360))/5;
